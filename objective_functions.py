@@ -26,3 +26,30 @@ class Griewank(Problem):
     def _evaluate(self, x, out, *args, **kwargs):
         f1 = np.sum(x**2)/4000 - np.prod(np.cos(x/np.sqrt(1j))) + 1
         out["F"] = f1
+
+
+class KnapSack(Problem):
+    def __init__(self, knapsacks, items):
+        self.items = items
+        self.knapsacks = knapsacks
+        super().__init__(n_var=len(knapsacks) * len(items),
+                         n_obj=1,
+                         n_constr=len(knapsacks),
+                         xl=0,
+                         xu=1,
+                         type_var=np.int32)
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        out["F"] = np.sum([
+            item[1]*x[j*len(self.items)+i]
+            for i, item in enumerate(self.items)
+            for j, _ in enumerate(self.knapsacks)
+        ])
+        out["G"] = [
+            np.sum([
+                item[0] * x[j * len(self.items) + i]
+                for i, item in enumerate(self.items)
+            ]) - capacity
+            for j, capacity in enumerate(self.knapsacks)
+        ]
+
