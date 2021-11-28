@@ -11,8 +11,9 @@ class Ackley(Problem):
                          xu=32.768)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        f1 = -20 * np.exp(-0.2 * np.sqrt(np.mean(x ** 2))) - np.exp(np.mean(np.cos(2 * np.pi * x))) + 20 + np.e
-        out["F"] = f1
+        part1 = -20 * np.exp(-0.2 * np.sqrt((1/self.n_var)*np.sum(x ** 2, axis=1)))
+        part2 = - np.exp(np.mean(np.cos(2 * np.pi * x))) + 20 + np.e
+        out["F"] = part1 + part2
 
 
 class Griewank(Problem):
@@ -24,7 +25,7 @@ class Griewank(Problem):
                          xu=600)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        f1 = np.sum(x**2)/4000 - np.prod(np.cos(x/np.sqrt(1j))) + 1
+        f1 = np.sum(x**2, axis=1)/4000 - np.prod(np.cos(x/np.sqrt(1j)), axis=1) + 1
         out["F"] = f1
 
 
@@ -44,12 +45,12 @@ class KnapSack(Problem):
             item[1]*x[j*len(self.items)+i]
             for i, item in enumerate(self.items)
             for j, _ in enumerate(self.knapsacks)
-        ])
+        ], axis=1)
         out["G"] = [
             np.sum([
                 item[0] * x[j * len(self.items) + i]
                 for i, item in enumerate(self.items)
-            ]) - capacity
+            ], axis=1) - capacity
             for j, capacity in enumerate(self.knapsacks)
         ]
 

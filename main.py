@@ -1,16 +1,30 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from objective_functions import Ackley, Griewank
+from pymoo.algorithms.soo.nonconvex.es import ES
+from pymoo.algorithms.soo.nonconvex.de import DE
+from pymoo.optimize import minimize
+import numpy as np
+from scipy.stats import ttest_ind
+from tqdm import tqdm
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+iterations = 30  # 1000  #10000
+problem_names = ['Ackley', 'Griewank']
+problems = [Ackley(), Griewank()]
+for problem, name in zip(problems, problem_names):
+    print(name)
+    es = ES()
+    de = DE()
+    es_results = []
+    de_results = []
+    for i in tqdm(range(iterations)):
+        es_results.append(minimize(problem, es, ("n_eval", 10000)).F)
+        de_results.append(minimize(problem, de, ("n_eval", 10000)).F)
+    print('resultados para Estrategia Evolutiva:')
+    print('      media:', np.mean(es_results))
+    print('      desvio:', np.var(es_results))
+    print('resultados para Evolucao Diferencial:')
+    print('      media:', np.mean(de_results))
+    print('      desvio:', np.var(de_results))
+    stat, pvalue = ttest_ind(es_results, de_results)
+    print('Estatistica do teste T para estes dois algoritmos:', stat)
+    print('P-valor encontrado:', pvalue)
