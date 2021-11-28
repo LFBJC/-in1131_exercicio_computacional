@@ -4,6 +4,7 @@ from pymoo.core.problem import Problem
 
 class Ackley(Problem):
     def __init__(self):
+        self.name = 'Ackley'
         super().__init__(n_var=2,
                          n_obj=1,
                          n_constr=0,
@@ -18,6 +19,7 @@ class Ackley(Problem):
 
 class Griewank(Problem):
     def __init__(self):
+        self.name = 'Griewank'
         super().__init__(n_var=2,
                          n_obj=1,
                          n_constr=0,
@@ -33,6 +35,7 @@ class KnapSack(Problem):
     def __init__(self, knapsacks, items):
         self.items = items
         self.knapsacks = knapsacks
+        self.name = 'KnapSack'
         super().__init__(n_var=len(knapsacks) * len(items),
                          n_obj=1,
                          n_constr=len(knapsacks),

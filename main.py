@@ -8,10 +8,9 @@ from tqdm import tqdm
 
 
 iterations = 30  # 1000  #10000
-problem_names = ['Ackley', 'Griewank']
 problems = [Ackley(), Griewank()]
-for problem, name in zip(problems, problem_names):
-    print(name)
+for problem in problems:
+    print(problem.name)
     es = ES()
     de = DE()
     es_results = []
