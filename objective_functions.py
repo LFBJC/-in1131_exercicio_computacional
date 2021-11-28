@@ -27,8 +27,9 @@ class Griewank(Problem):
                          xu=600)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        f1 = np.sum(x**2, axis=1)/4000 - np.prod(np.cos(x/np.sqrt(1j)), axis=1) + 1
-        out["F"] = f1
+        part1 = np.sum(x**2, axis=1)/4000
+        part2 = - np.prod([np.cos(x[:, i]/np.sqrt(i+1)) for i in range(x.shape[1])])
+        out["F"] = part1 + part2 + 1
 
 
 class Colville(Problem):

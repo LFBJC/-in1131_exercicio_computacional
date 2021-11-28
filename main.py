@@ -7,7 +7,7 @@ from scipy.stats import ttest_ind
 from tqdm import tqdm
 
 
-iterations = 10  # 1000  #10000
+iterations = 30  # 1000  #10000
 problems = [Ackley(), Griewank(), Colville()]
 for problem in problems:
     print(problem.name)
