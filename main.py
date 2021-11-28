@@ -1,4 +1,4 @@
-from objective_functions import Ackley, Griewank
+from objective_functions import Ackley, Griewank, Colville
 from pymoo.algorithms.soo.nonconvex.es import ES
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
@@ -7,8 +7,8 @@ from scipy.stats import ttest_ind
 from tqdm import tqdm
 
 
-iterations = 30  # 1000  #10000
-problems = [Ackley(), Griewank()]
+iterations = 10  # 1000  #10000
+problems = [Ackley(), Griewank(), Colville()]
 for problem in problems:
     print(problem.name)
     es = ES()

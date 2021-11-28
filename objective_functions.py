@@ -31,6 +31,23 @@ class Griewank(Problem):
         out["F"] = f1
 
 
+class Colville(Problem):
+    def __init__(self):
+        self.name = 'Colville'
+        super().__init__(n_var=4,
+                         n_obj=1,
+                         n_constr=0,
+                         xl=-10,
+                         xu=10)
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        part1 = 100*(x[:, 0]**2 - x[:, 1])**2 + (x[:, 0] - np.ones_like(x[:, 0]))**2
+        part2 = (x[:, 2] - np.ones_like(x[:, 2]))**2 + 90*(x[:, 2]**2 - x[:, 3])**2
+        part3 = 10.1*((x[:, 1] - np.ones_like(x[:, 1]))**2 + (x[:, 3] - np.ones_like(x[:, 3]))**2)
+        part4 = 19.8*(x[:, 1] - np.ones_like(x[:, 1]))*(x[:, 3] - np.ones_like(x[:, 3]))
+        out["F"] = part1 + part2 + part3 + part4
+
+
 class KnapSack(Problem):
     def __init__(self, knapsacks, items):
         self.items = items
