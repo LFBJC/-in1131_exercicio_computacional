@@ -1,5 +1,5 @@
 import numpy as np
-from pymoo.core.problem import Problem
+from pymoo.core.problem import Problem, ElementwiseProblem
 
 #1.a
 class Ackley(Problem):
@@ -50,8 +50,8 @@ class Colville(Problem):
         out["F"] = part1 + part2 + part3 + part4
 
 
-#1.c - to fix
-class Trid(Problem):
+#1.c 
+class Trid(ElementwiseProblem):
     def __init__(self):
         self.name = 'Trid'
         super().__init__(n_var=5,
