@@ -1,14 +1,16 @@
-from objective_functions import Ackley, Griewank, Colville
+from objective_functions import Ackley, Griewank, Colville, Trid
 from pymoo.algorithms.soo.nonconvex.es import ES
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
 import numpy as np
 from scipy.stats import ttest_ind
 from tqdm import tqdm
+from pymoo.operators.sampling.lhs import LHS
+from pymoo.factory import get_problem
 
 
 iterations = 30  # 1000  #10000
-problems = [Ackley(), Griewank(), Colville()]
+problems = [Trid(), Ackley(), Griewank(), Colville()]
 for problem in problems:
     print(problem.name)
     es = ES()

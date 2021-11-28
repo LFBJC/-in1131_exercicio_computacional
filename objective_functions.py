@@ -1,7 +1,7 @@
 import numpy as np
 from pymoo.core.problem import Problem
 
-
+#1.a
 class Ackley(Problem):
     def __init__(self):
         self.name = 'Ackley'
@@ -17,6 +17,7 @@ class Ackley(Problem):
         out["F"] = part1 + part2
 
 
+#1.b
 class Griewank(Problem):
     def __init__(self):
         self.name = 'Griewank'
@@ -49,6 +50,22 @@ class Colville(Problem):
         out["F"] = part1 + part2 + part3 + part4
 
 
+#1.c - to fix
+class Trid(Problem):
+    def __init__(self):
+        self.name = 'Trid'
+        super().__init__(n_var=5,
+                         n_obj=1,
+                         n_constr=0,
+                         xl=-20,
+                         xu=20)
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        part1 = np.sum((x - 1) ** 2) 
+        part2 = - np.sum(x[1:] * x[:-1])
+        out["F"] = part1 + part2
+
+#2
 class KnapSack(Problem):
     def __init__(self, knapsacks, items):
         self.items = items
