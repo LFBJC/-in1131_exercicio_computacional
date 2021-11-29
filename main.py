@@ -46,7 +46,7 @@ def q2(knapsacks=None, items=None):
 
     problem = KnapSack(knapsacks=knapsacks, items=items)
     algorithm = GA(
-        pop_size=100,
+        pop_size=100, #pensar numa estrategia de ajustar de acordo com o numero de items * mochila!
         sampling=get_sampling("bin_random"),
         crossover=get_crossover("bin_hux"),
         mutation=get_mutation("bin_bitflip"),
@@ -55,12 +55,25 @@ def q2(knapsacks=None, items=None):
     res = minimize(problem,
                 algorithm,
                 ('n_gen', 5),
-                verbose=True)
+                verbose=False)
     print("Items (peso,valor): " + str(items)) 
+
     num = 0
+    chunks = [res.X[x:x+len(items)] for x in range(0, len(res.X), len(items))]
     for i in knapsacks:
         num +=1
-        print("Mochila " + str(num) + "(" + str(i) + " u.v): " + str(res.X[:len(items)]) )
+        print("Mochila " + str(num) + "(" + str(i) + " u.v): ")
+        indice = 0
+        moch_aux = []
+        peso_total = 0
+        val_total = 0
+        for obj in chunks[num-1]:
+            if obj == True:
+                moch_aux.append(items[indice])
+                peso_total += items[indice][0]
+                val_total += items[indice][1]
+            indice += 1
+        print(str(moch_aux) + " - peso total: " + str(peso_total) + " / valor total: " + str(val_total) + "\n")
 
 
     #print("Best solution found: %s" % res.X)
