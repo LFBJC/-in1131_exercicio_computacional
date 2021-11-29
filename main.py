@@ -1,8 +1,8 @@
-#from pymoo.algorithms.soo.nonconvex.ga import GA
+from pymoo.algorithms.soo.nonconvex.ga import GA
 
-from numpy.core.fromnumeric import var
-from pymoo.problems.single import ackley
-from pymoo.problems.single.knapsack import Knapsack
+# from numpy.core.fromnumeric import var
+# from pymoo.problems.single import ackley
+# from pymoo.problems.single.knapsack import Knapsack
 from objective_functions import Ackley, Griewank, Colville, Trid, KnapSack
 from pymoo.algorithms.soo.nonconvex.es import ES
 from pymoo.algorithms.soo.nonconvex.de import DE
@@ -10,10 +10,11 @@ from pymoo.optimize import minimize
 import numpy as np
 from scipy.stats import ttest_ind
 from tqdm import tqdm
-from pymoo.operators.sampling.lhs import LHS
-from pymoo.factory import get_problem
-#from pymoo.problems.single.knapsack import Knapsack, MultiObjectiveKnapsack, create_random_knapsack_problem
-from pymoo.factory import get_crossover, get_mutation, get_sampling
+# from pymoo.operators.sampling.lhs import LHS
+
+# from pymoo.factory import get_problem
+# from pymoo.problems.single.knapsack import Knapsack, MultiObjectiveKnapsack, create_random_knapsack_problem
+# from pymoo.factory import get_crossover, get_mutation, get_sampling
 
 def q1(problem=Ackley()):
     iterations = 30  # 1000  #10000
@@ -38,26 +39,29 @@ def q1(problem=Ackley()):
     print('\n')
 
 def q2(problem=None):
-    from pymoo.algorithms.moo.nsga2 import NSGA2
-    from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation
+    # from pymoo.algorithms.moo.nsga2 import NSGA2
+    # from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation
     from pymoo.optimize import minimize
-    from pymoo.visualization.scatter import Scatter
+    # from pymoo.visualization.scatter import Scatter
+    from pymoo.operators.sampling.rnd import BinaryRandomSampling
+    from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
    
-    algorithm = NSGA2(pop_size=100,                  
-                    sampling=get_sampling("bin_random"),
-                    crossover=get_crossover("bin_two_point"),
-                    mutation=get_mutation("bin_bitflip"),
-                    eliminate_duplicates=True)
+    algorithm = GA(
+        sampling=BinaryRandomSampling(),
+        mutation=BinaryBitflipMutation(),
+    )
 
     res = minimize(problem,
                 algorithm,
                 ('n_gen', 50),
                 seed=1,
                 verbose=False)
+    """
     plot = Scatter()
     plot.add(problem.pareto_front(), plot_type="line", color="black", alpha=0.7)
     plot.add(res.F, facecolor="none", edgecolor="red")
     plot.show()
+    """
     # algorithm = AE(
     #     pop_size=10000,
     #     sampling=get_sampling("bin_random"),
@@ -70,7 +74,7 @@ def q2(problem=None):
     #             ('n_gen', 5),
     #             verbose=True)
 
-    print("Best solution found: %s" % res.X.astype(int))
+    print("Best solution found: %s" % res.X)
     print("Function value: %s" % res.F)
     print("Constraint violation: %s" % res.CV)
 

@@ -76,18 +76,18 @@ class KnapSack(Problem):
                          n_constr=len(knapsacks),
                          xl=0,
                          xu=1,
-                         type_var=np.int32)
+                         type_var=int)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        out["F"] = np.sum([
-            item[1]*x[j*len(self.items)+i]
+        out["F"] = -1*np.sum([
+            item[1]*x[:, j*len(self.items)+i]
             for i, item in enumerate(self.items)
             for j, _ in enumerate(self.knapsacks)
-        ], axis=1)
-        out["G"] = [
+        ], axis=0)
+        out["G"] = np.transpose(np.array([
             np.sum([
-                item[0] * x[j * len(self.items) + i]
+                item[0] * x[:, j * len(self.items) + i]
                 for i, item in enumerate(self.items)
-            ], axis=1) - capacity
+            ], axis=0) - capacity
             for j, capacity in enumerate(self.knapsacks)
-        ]
+        ]))
