@@ -38,46 +38,36 @@ def q1(problem=Ackley()):
     print('P-valor encontrado:', pvalue)
     print('\n')
 
-def q2(problem=None):
-    # from pymoo.algorithms.moo.nsga2 import NSGA2
-    # from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation
+def q2(knapsacks=None, items=None):
+    from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation
     from pymoo.optimize import minimize
-    # from pymoo.visualization.scatter import Scatter
     from pymoo.operators.sampling.rnd import BinaryRandomSampling
     from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
-   
+
+    problem = KnapSack(knapsacks=knapsacks, items=items)
     algorithm = GA(
-        sampling=BinaryRandomSampling(),
-        mutation=BinaryBitflipMutation(),
-    )
+        pop_size=100,
+        sampling=get_sampling("bin_random"),
+        crossover=get_crossover("bin_hux"),
+        mutation=get_mutation("bin_bitflip"),
+        eliminate_duplicates=True)
 
     res = minimize(problem,
                 algorithm,
-                ('n_gen', 50),
-                seed=1,
-                verbose=False)
-    """
-    plot = Scatter()
-    plot.add(problem.pareto_front(), plot_type="line", color="black", alpha=0.7)
-    plot.add(res.F, facecolor="none", edgecolor="red")
-    plot.show()
-    """
-    # algorithm = AE(
-    #     pop_size=10000,
-    #     sampling=get_sampling("bin_random"),
-    #     crossover=get_crossover("bin_hux"),
-    #     mutation=get_mutation("bin_bitflip"),
-    #     eliminate_duplicates=True)
+                ('n_gen', 5),
+                verbose=True)
+    print("Items (peso,valor): " + str(items)) 
+    num = 0
+    for i in knapsacks:
+        num +=1
+        print("Mochila " + str(num) + "(" + str(i) + " u.v): " + str(res.X[:len(items)]) )
 
-    # res = minimize(problem,
-    #             algorithm,
-    #             ('n_gen', 5),
-    #             verbose=True)
 
-    print("Best solution found: %s" % res.X)
+    #print("Best solution found: %s" % res.X)
+
     print("Function value: %s" % res.F)
     print("Constraint violation: %s" % res.CV)
-
+    print("\n\n\n")
 
 if __name__ == "__main__":
     
@@ -95,18 +85,27 @@ if __name__ == "__main__":
         elif value == 'knapsack':
             padrao = input("Digite 1 p/ resolver a Q2 (17 objetos e 3 mochilas), digite 2 para um problema diferente: \n")
             if padrao == '1':
-                #tupla objetos(profit,weights)
-                items = [(3,3),(2,2),(1,1),(2,2.2),(1,1.4),(4,3.8),(1,0.2),(1,0.1),
-                (1,0.13),(3,2.8),(2,1.5),(2,2),(3,3.1),(1,1.2),(3,1.7),(2,1.1),(1,0.3)]
-                knapsacks = [13,9,7]
-                q2(KnapSack(knapsacks=knapsacks, items=items))
+                #tupla objetos(weights,profit)
+                items = [(3, 3), (2, 2), (1, 1), (2.2, 2), (1.4, 1), (3.8, 4), (0.2, 1), (0.1, 1), (0.13, 1), 
+                        (2.8, 3), (1.5, 2), (2, 2), (3.1, 3), (1.2, 1), (1.7, 3), (1.1, 2), (0.3, 1)]
+                bags_list = [13,9,7]
+                q2(knapsacks=bags_list, items=items)
             elif padrao == '2':
-                print("Opção indisponível")
-                # bags = input("Digite o numero de mochilas:\n")
-                # print(f'You entered {bags}')
-                # objs = input("Digite o numero de objetos:\n")
-                # print(f'You entered {objs}')
-                #q2(KnapSack(bags, objs))
+                items = []
+                val_input = input("Digite os valores dos items separado por espaço:\n")
+                val_list = val_input.split()
+                print(f'You entered {val_list}\n')
+                peso_input = input("Digite os pesos dos items separado por espaço:\n")
+                peso_list = peso_input.split()
+                print(f'You entered {peso_list}\n')
+                for i in range(len(val_list)):
+                    items.append((int(peso_list[i]),int(val_list[i])))
+                print(f'You entered {items}\n')
+                bags = input("Digite a capacidade das mochilas separado por espaço:\n")
+                bags_list = bags.split()
+                for j in range(len(bags_list)):
+                    bags_list[j] = int(bags_list[j])
+                q2(knapsacks=bags_list, items=items)
         else:
             print("Opção não disponível")
             exit()
