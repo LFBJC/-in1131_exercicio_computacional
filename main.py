@@ -45,8 +45,9 @@ def q2(knapsacks=None, items=None):
     from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
 
     problem = KnapSack(knapsacks=knapsacks, items=items)
+    init_pop = len(knapsacks) * len(items) * 20
     algorithm = GA(
-        pop_size=100, #pensar numa estrategia de ajustar de acordo com o numero de items * mochila!
+        pop_size=init_pop, #pensar numa estrategia de ajustar de acordo com o numero de items * mochila!
         sampling=get_sampling("bin_random"),
         crossover=get_crossover("bin_hux"),
         mutation=get_mutation("bin_bitflip"),
@@ -103,6 +104,7 @@ if __name__ == "__main__":
                 items = [(3, 3), (2, 2), (1, 1), (2.2, 2), (1.4, 1), (3.8, 4), (0.2, 1), (0.1, 1), (0.13, 1),
                         (2.8, 3), (1.5, 2), (2, 2), (3.1, 3), (1.2, 1), (1.7, 3), (1.1, 2), (0.3, 1)]
                 bags_list = [13,9,7]
+
                 q2(knapsacks=bags_list, items=items)
             elif padrao == '2':
                 items = []
