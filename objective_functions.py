@@ -91,4 +91,3 @@ class KnapSack(Problem):
             ], axis=1) - capacity
             for j, capacity in enumerate(self.knapsacks)
         ]
-
