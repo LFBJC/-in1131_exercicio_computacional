@@ -39,7 +39,7 @@ def q1(problem=Ackley()):
     print('\n')
 
 def q2(knapsacks=None, items=None):
-    from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation
+    from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation, get_selection
     from pymoo.optimize import minimize
     from pymoo.operators.sampling.rnd import BinaryRandomSampling
     from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
@@ -49,40 +49,48 @@ def q2(knapsacks=None, items=None):
     algorithm = GA(
         pop_size=init_pop, #pensar numa estrategia de ajustar de acordo com o numero de items * mochila!
         sampling=get_sampling("bin_random"),
-        crossover=get_crossover("bin_hux"),
+        crossover=get_crossover("bin_exp"), #bin_hux
         mutation=get_mutation("bin_bitflip"),
+        selection = get_selection('random'),
         eliminate_duplicates=True)
 
     res = minimize(problem,
                 algorithm,
-                ('n_eval', 10000),
-                verbose=False)
-    print("Items (peso,valor): " + str(items))
+                ('n_eval', 100000),
+                verbose=True)
+    print("Items (volume,valor): %s\n" % str(items))
 
-    num = 0
-    chunks = [res.X[x:x+len(items)] for x in range(0, len(res.X), len(items))]
-    for i in knapsacks:
-        num +=1
-        print("Mochila " + str(num) + "(" + str(i) + " u.v): ")
-        indice = 0
-        moch_aux = []
-        peso_total = 0
-        val_total = 0
-        for obj in chunks[num-1]:
-            if obj == True:
-                moch_aux.append(items[indice])
-                peso_total += items[indice][0]
-                val_total += items[indice][1]
-            indice += 1
-        print(str(moch_aux) + " - peso total: " + str(peso_total) + " / valor total: " + str(val_total) + "\n")
+    if res.X is not None:
+        num = 0
+        chunks = [res.X[x:x+len(items)] for x in range(0, len(res.X), len(items))]
+        result = [0,0]
+        for i in knapsacks:
+            num +=1
+            print("Mochila " + str(num) + "(" + str(i) + " u.v): ")
+            indice = 0
+            moch_aux = []
+            volume_total = 0
+            val_total = 0
+            for obj in chunks[num-1]:
+                if obj == True:
+                    moch_aux.append(items[indice])
+                    volume_total += items[indice][0]
+                    val_total += items[indice][1]
+                indice += 1
+            print(str(moch_aux) + " - volume na mochila: " + str(round(volume_total,2)) + 
+                    " / valor na mochila: " + str(round(val_total,2)) + "\n")
+            result[0] += volume_total
+            result[1] += val_total
+        print("Volume somado: %s\nValor somado: " % result[0], result[1])
 
+        print("\nBest solution found: ")
+        print(problem.x_to_matrix(res.X))
 
-    print("Best solution found: ")
-    print(problem.x_to_matrix(res.X))
-
-    print("Function value: %s" % res.F)
-    print("Constraint violation: %s" % res.CV)
-    print("\n\n\n")
+        print("Function value: %s" % res.F)
+        print("Constraint violation: %s" % res.CV)
+        print("\n\n\n")
+    else:
+        print("Error: Could not find a solution")
 
 if __name__ == "__main__":
 
@@ -111,11 +119,11 @@ if __name__ == "__main__":
                 val_input = input("Digite os valores dos items separado por espaço:\n")
                 val_list = val_input.split()
                 print(f'You entered {val_list}\n')
-                peso_input = input("Digite os pesos dos items separado por espaço:\n")
-                peso_list = peso_input.split()
-                print(f'You entered {peso_list}\n')
+                volume_input = input("Digite os volumes dos items separado por espaço:\n")
+                volume_list = volume_input.split()
+                print(f'You entered {volume_list}\n')
                 for i in range(len(val_list)):
-                    items.append((int(peso_list[i]),int(val_list[i])))
+                    items.append((int(volume_list[i]),int(val_list[i])))
                 print(f'You entered {items}\n')
                 bags = input("Digite a capacidade das mochilas separado por espaço:\n")
                 bags_list = bags.split()
