@@ -54,9 +54,9 @@ def q2(knapsacks=None, items=None):
 
     res = minimize(problem,
                 algorithm,
-                ('n_gen', 5),
+                ('n_eval', 10000),
                 verbose=False)
-    print("Items (peso,valor): " + str(items)) 
+    print("Items (peso,valor): " + str(items))
 
     num = 0
     chunks = [res.X[x:x+len(items)] for x in range(0, len(res.X), len(items))]
@@ -76,14 +76,15 @@ def q2(knapsacks=None, items=None):
         print(str(moch_aux) + " - peso total: " + str(peso_total) + " / valor total: " + str(val_total) + "\n")
 
 
-    #print("Best solution found: %s" % res.X)
+    print("Best solution found: ")
+    print(problem.x_to_matrix(res.X))
 
     print("Function value: %s" % res.F)
     print("Constraint violation: %s" % res.CV)
     print("\n\n\n")
 
 if __name__ == "__main__":
-    
+
     while True:
         value = input("Digite uma opção (ackley, griewank, colville, trid ou knapsack):\n")
         print(f'You entered {value}\n')
@@ -99,7 +100,7 @@ if __name__ == "__main__":
             padrao = input("Digite 1 p/ resolver a Q2 (17 objetos e 3 mochilas), digite 2 para um problema diferente: \n")
             if padrao == '1':
                 #tupla objetos(weights,profit)
-                items = [(3, 3), (2, 2), (1, 1), (2.2, 2), (1.4, 1), (3.8, 4), (0.2, 1), (0.1, 1), (0.13, 1), 
+                items = [(3, 3), (2, 2), (1, 1), (2.2, 2), (1.4, 1), (3.8, 4), (0.2, 1), (0.1, 1), (0.13, 1),
                         (2.8, 3), (1.5, 2), (2, 2), (3.1, 3), (1.2, 1), (1.7, 3), (1.1, 2), (0.3, 1)]
                 bags_list = [13,9,7]
                 q2(knapsacks=bags_list, items=items)
