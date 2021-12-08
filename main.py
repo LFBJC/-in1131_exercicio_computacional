@@ -3,6 +3,7 @@ from pymoo.algorithms.soo.nonconvex.ga import GA
 # from np.core.fromnumeric import var
 # from pymoo.problems.single import ackley
 # from pymoo.problems.single.knapsack import Knapsack
+from eda_definition import run_eda_instance
 from objective_functions import Ackley, Griewank, Colville, Trid, KnapSack
 from pymoo.algorithms.soo.nonconvex.es import ES
 from pymoo.algorithms.soo.nonconvex.de import DE
@@ -17,8 +18,8 @@ from tqdm import tqdm
 # from pymoo.factory import get_crossover, get_mutation, get_sampling
 
 
-def q1(problem=Ackley()):
-    iterations = 30  # 1000  #10000
+def q1(problem=Ackley(), include_eda=False):
+    iterations = 2 #30  # 1000  #10000
 
     print(problem.name)
     es = ES()
@@ -27,10 +28,17 @@ def q1(problem=Ackley()):
     es_results = []
     de_results = []
     ga_results = []
+    eda_results = []
+    if include_eda:
+        criterion = ("n_gen", 100)
+    else:
+        criterion = ("n_eval", 10000)
     for _ in tqdm(range(iterations)):
-        es_results.append(minimize(problem, es, ("n_eval", 10000)).F)
-        de_results.append(minimize(problem, de, ("n_eval", 10000)).F)
-        ga_results.append(minimize(problem, ga, ("n_eval", 10000)).F)
+        es_results.append(minimize(problem, es, criterion).F)
+        de_results.append(minimize(problem, de, criterion).F)
+        ga_results.append(minimize(problem, ga, criterion).F)
+        if include_eda:
+            eda_results.append(run_eda_instance(problem, ngen=criterion[1]))
     print('resultados para Estrategia Evolutiva:')
     print('      media:', np.mean(es_results))
     print('      desvio:', np.std(es_results))
@@ -40,8 +48,14 @@ def q1(problem=Ackley()):
     print('resultados para Algoritmos Genéticos:')
     print('      media:', np.mean(ga_results))
     print('      desvio:', np.std(ga_results))
+    if include_eda:
+        print('resultados para Algoritmos de Estimação de Distribuição:')
+        print('      media:', np.mean(eda_results))
+        print('      desvio:', np.std(eda_results))
     best, best_results = t_test(['ES', 'DE'], results=[es_results, de_results])
     best, best_results = t_test(['GA', best], results=[ga_results, best_results])
+    if include_eda:
+        best, best_results = t_test(['EDA', best], results=[eda_results, best_results])
     print('O melhor algoritmo encontrado para o problema solicotado foi: '+best)
     print('\n')
 
@@ -107,13 +121,33 @@ if __name__ == "__main__":
         value = input("Digite uma opção (ackley, griewank, colville, trid ou knapsack):\n")
         print(f'You entered {value}\n')
         if value == 'ackley':
-            q1(Ackley())
+            eda = input(
+                'Deseja incluir Algoritmos de Estimação de Distribuição (EDA) no teste? (1 para sim 0 para não)\n')
+            if eda == '1':
+                q1(Ackley(), include_eda=True)
+            else:
+                q1(Ackley(), include_eda=False)
         elif value == 'griewank':
-            q1(Griewank())
+            eda = input(
+                'Deseja incluir Algoritmos de Estimação de Distribuição (EDA) no teste? (1 para sim 0 para não)\n')
+            if eda == '1':
+                q1(Griewank(), include_eda=True)
+            else:
+                q1(Griewank(), include_eda=False)
         elif value == 'colville':
-            q1(Colville())
+            eda = input(
+                'Deseja incluir Algoritmos de Estimação de Distribuição (EDA) no teste? (1 para sim 0 para não)\n')
+            if eda == '1':
+                q1(Colville(), include_eda=True)
+            else:
+                q1(Colville(), include_eda=False)
         elif value == 'trid':
-            q1(Trid())
+            eda = input(
+                'Deseja incluir Algoritmos de Estimação de Distribuição (EDA) no teste? (1 para sim 0 para não)\n')
+            if eda == '1':
+                q1(Trid(), include_eda=True)
+            else:
+                q1(Trid(), include_eda=False)
         elif value == 'knapsack':
             padrao = input("Digite 1 p/ resolver a Q2 (17 objetos e 3 mochilas), digite 2 para um problema diferente: \n")
             if padrao == '1':
