@@ -23,18 +23,26 @@ def q1(problem=Ackley()):
     print(problem.name)
     es = ES()
     de = DE()
+    ga = GA()
     es_results = []
     de_results = []
+    ga_results = []
     for _ in tqdm(range(iterations)):
         es_results.append(minimize(problem, es, ("n_eval", 10000)).F)
         de_results.append(minimize(problem, de, ("n_eval", 10000)).F)
+        ga_results.append(minimize(problem, ga, ("n_eval", 10000)).F)
     print('resultados para Estrategia Evolutiva:')
     print('      media:', np.mean(es_results))
     print('      desvio:', np.std(es_results))
     print('resultados para Evolucao Diferencial:')
     print('      media:', np.mean(de_results))
     print('      desvio:', np.std(de_results))
-    t_test(['ES', 'DE'], results=[es_results, de_results])
+    print('resultados para Algoritmos Genéticos:')
+    print('      media:', np.mean(ga_results))
+    print('      desvio:', np.std(ga_results))
+    best, best_results = t_test(['ES', 'DE'], results=[es_results, de_results])
+    best, best_results = t_test(['GA', best], results=[ga_results, best_results])
+    print('O melhor algoritmo encontrado para o problema solicotado foi: '+best)
     print('\n')
 
 
