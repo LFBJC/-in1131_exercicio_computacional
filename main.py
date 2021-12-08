@@ -8,7 +8,7 @@ from pymoo.algorithms.soo.nonconvex.es import ES
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
 import numpy as np
-from scipy.stats import ttest_ind
+from utils import t_test
 from tqdm import tqdm
 # from pymoo.operators.sampling.lhs import LHS
 
@@ -34,16 +34,7 @@ def q1(problem=Ackley()):
     print('resultados para Evolucao Diferencial:')
     print('      media:', np.mean(de_results))
     print('      desvio:', np.std(de_results))
-    stat, pvalue = ttest_ind(es_results, de_results)
-    print('Teste T para estes dois algoritmos')
-    print('    P-valor encontrado:', pvalue[0])
-    if pvalue < 0.05:
-        if np.mean(es_results) > np.mean(de_results):
-            print('    A evolução diferencial obteve resultados melhores com nível de confiança 95%')
-        else:
-            print('    A estratégia evolutiva obteve resultados melhores com nível de confiança 95%')
-    else:
-        print('    Para um nível de significância de 5% os resultados são equivalentes')
+    t_test(['ES', 'DE'], results=[es_results, de_results])
     print('\n')
 
 
