@@ -1,6 +1,6 @@
 from pymoo.algorithms.soo.nonconvex.ga import GA
 
-# from numpy.core.fromnumeric import var
+# from np.core.fromnumeric import var
 # from pymoo.problems.single import ackley
 # from pymoo.problems.single.knapsack import Knapsack
 from objective_functions import Ackley, Griewank, Colville, Trid, KnapSack
@@ -16,6 +16,7 @@ from tqdm import tqdm
 # from pymoo.problems.single.knapsack import Knapsack, MultiObjectiveKnapsack, create_random_knapsack_problem
 # from pymoo.factory import get_crossover, get_mutation, get_sampling
 
+
 def q1(problem=Ackley()):
     iterations = 30  # 1000  #10000
 
@@ -24,19 +25,20 @@ def q1(problem=Ackley()):
     de = DE()
     es_results = []
     de_results = []
-    for i in tqdm(range(iterations)):
+    for _ in tqdm(range(iterations)):
         es_results.append(minimize(problem, es, ("n_eval", 10000)).F)
         de_results.append(minimize(problem, de, ("n_eval", 10000)).F)
     print('resultados para Estrategia Evolutiva:')
     print('      media:', np.mean(es_results))
-    print('      desvio:', np.var(es_results))
+    print('      desvio:', np.std(es_results))
     print('resultados para Evolucao Diferencial:')
     print('      media:', np.mean(de_results))
-    print('      desvio:', np.var(de_results))
+    print('      desvio:', np.std(de_results))
     stat, pvalue = ttest_ind(es_results, de_results)
     print('Estatistica do teste T para estes dois algoritmos:', stat)
     print('P-valor encontrado:', pvalue)
     print('\n')
+
 
 def q2(knapsacks=None, items=None):
     from pymoo.factory import get_problem, get_sampling, get_crossover, get_mutation, get_selection
@@ -55,9 +57,9 @@ def q2(knapsacks=None, items=None):
         eliminate_duplicates=True)
 
     res = minimize(problem,
-                algorithm,
-                ('n_eval', 100000),
-                verbose=True)
+                   algorithm,
+                   ('n_eval', 100000),
+                   verbose=True)
     print("Items (volume,valor): %s\n" % str(items))
 
     if res.X is not None:
@@ -92,6 +94,7 @@ def q2(knapsacks=None, items=None):
     else:
         print("Error: Could not find a solution")
 
+
 if __name__ == "__main__":
 
     while True:
@@ -110,8 +113,8 @@ if __name__ == "__main__":
             if padrao == '1':
                 #tupla objetos(weights,profit)
                 items = [(3, 3), (2, 2), (1, 1), (2.2, 2), (1.4, 1), (3.8, 4), (0.2, 1), (0.1, 1), (0.13, 1),
-                        (2.8, 3), (1.5, 2), (2, 2), (3.1, 3), (1.2, 1), (1.7, 3), (1.1, 2), (0.3, 1)]
-                bags_list = [13,9,7]
+                         (2.8, 3), (1.5, 2), (2, 2), (3.1, 3), (1.2, 1), (1.7, 3), (1.1, 2), (0.3, 1)]
+                bags_list = [13, 9, 7]
 
                 q2(knapsacks=bags_list, items=items)
             elif padrao == '2':
