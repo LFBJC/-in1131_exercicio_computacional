@@ -35,8 +35,15 @@ def q1(problem=Ackley()):
     print('      media:', np.mean(de_results))
     print('      desvio:', np.std(de_results))
     stat, pvalue = ttest_ind(es_results, de_results)
-    print('Estatistica do teste T para estes dois algoritmos:', stat)
-    print('P-valor encontrado:', pvalue)
+    print('Teste T para estes dois algoritmos')
+    print('    P-valor encontrado:', pvalue[0])
+    if pvalue < 0.05:
+        if np.mean(es_results) > np.mean(de_results):
+            print('    A evolução diferencial obteve resultados melhores com nível de confiança 95%')
+        else:
+            print('    A estratégia evolutiva obteve resultados melhores com nível de confiança 95%')
+    else:
+        print('    Para um nível de significância de 5% os resultados são equivalentes')
     print('\n')
 
 
