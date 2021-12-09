@@ -18,22 +18,44 @@ from tqdm import tqdm
 # from pymoo.factory import get_problem
 # from pymoo.problems.single.knapsack import Knapsack, MultiObjectiveKnapsack, create_random_knapsack_problem
 # from pymoo.factory import get_crossover, get_mutation, get_sampling
+import matplotlib.pyplot as plt
+import numpy as np
 
+from pymoo.core.callback import Callback
+
+
+class MyCallback(Callback):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.data["best"] = []
+
+    def notify(self, algorithm):
+        self.data["best"].append(algorithm.pop.get("F").min())
+
+class KnapCallback(Callback):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.data["best"] = []
+
+    def notify(self, algorithm):
+        self.data["best"].append(-1 * algorithm.pop.get("F").min())
 
 def q1(problem=Ackley(), include_eda=False):
-    iterations = 30# 1000  #10000
+    iterations = 10# 1000  #10000
 
     print(problem.name)
-    es = ES()
-    de = DE()
-    ga = GA()
+    es = ES(callback=MyCallback())
+    de = DE(callback=MyCallback())
+    ga = GA(callback=MyCallback())
     es_results = []
     de_results = []
     ga_results = []
     eda_results = []
 
-    criterion = ("n_eval", 10000)
-    #criterion = ("n_gen", 200)
+    #criterion = ("n_eval", 10000)
+    criterion = ("n_gen", 100)
     for _ in tqdm(range(iterations)):
         aux_es =  minimize(problem, es, criterion)
         es_results.append(aux_es.F)
@@ -43,25 +65,42 @@ def q1(problem=Ackley(), include_eda=False):
         aux_ga = minimize(problem, ga, criterion)
         ga_results.append(aux_ga.F)
         if include_eda:
-            aux_eda, res_eda = run_eda_instance(problem, ngen=criterion[1])
+            aux_eda, res_eda, fit_mins = run_eda_instance(problem, ngen=criterion[1])
             eda_results.append(aux_eda)
+    
     print('resultados para Estrategia Evolutiva:')
     print('      solucao', aux_es.X)
     print('      media:', np.mean(es_results))
     print('      desvio:', np.std(es_results))
+    val = aux_es.algorithm.callback.data["best"]
+    plt.plot(np.arange(len(val)), val, marker='', markerfacecolor='blue', label='ES')
+
     print('resultados para Evolucao Diferencial:')
     print('      solucao', aux_de.X)
     print('      media:', np.mean(de_results))
     print('      desvio:', np.std(de_results))
+    val = aux_de.algorithm.callback.data["best"]
+    plt.plot(np.arange(len(val)), val, marker='', markerfacecolor='orange', label='DE')
+
     print('resultados para Algoritmos Genéticos:')
     print('      solucao', aux_ga.X)
     print('      media:', np.mean(ga_results))
     print('      desvio:', np.std(ga_results))
+
+    val = aux_ga.algorithm.callback.data["best"]
+    plt.plot(np.arange(len(val)), val, marker='', markerfacecolor='green', label='GA')
+
     if include_eda:
         print('resultados para Algoritmos de Estimação de Distribuição:')
         print('      solucao', res_eda[0])    
         print('      media:', np.mean(eda_results))
         print('      desvio:', np.std(eda_results))
+        
+        plt.plot(np.arange(len(fit_mins)), fit_mins, marker='', markerfacecolor='red', label='EDA')
+    plt.legend()
+    plt.title("GA x ES x ED x EDA for " + problem.name )
+    plt.savefig("comp_" + problem.name + ".png")
+    plt.clf()
     best, best_results = t_test(['ES', 'DE'], results=[es_results, de_results])
     best, best_results = t_test(['GA', best], results=[ga_results, best_results])
     if include_eda:
@@ -94,8 +133,10 @@ def q2(knapsacks=None, items=None):
     start_time = time.time()
     res = minimize(problem,
                    algorithm,
-                   ('n_eval', 10000*5),
-                   verbose=True)
+                   #('n_eval', 10000*5),
+                   ('n_gen', 100),
+                   verbose=True,
+                   callback=KnapCallback())
     print("Items (volume,valor): %s\n" % str(items))
 
     if res.X is not None:
@@ -128,6 +169,14 @@ def q2(knapsacks=None, items=None):
         print("Constraint violation: %s" % res.CV)
         print("--- %s seconds ---" % (time.time() - start_time))
         print("\n\n\n")
+
+        val = res.algorithm.callback.data["best"]
+        plt.plot(np.arange(len(val)), val, marker='', markerfacecolor='green', label='knapsack')
+
+        plt.legend()
+        plt.title("Fitness x Generation")
+        plt.savefig("comp_knapsack.png")
+
     else:
         print("Error: Could not find a solution")
 

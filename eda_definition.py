@@ -79,5 +79,6 @@ def run_eda_instance(problem, ngen):
     stats.register("min", numpy.mean)
     pop, logbook = algorithms.eaGenerateUpdate(toolbox, ngen=ngen, stats=stats, 
                     verbose=False)
+    fit_mins = logbook.select("min")
 
-    return logbook.select("min")[-1], tools.selBest(pop, k=1)
+    return logbook.select("min")[-1], tools.selBest(pop, k=1), fit_mins
