@@ -78,4 +78,4 @@ def run_eda_instance(problem, ngen):
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("min", numpy.mean)
 
-    return algorithms.eaGenerateUpdate(toolbox, ngen=ngen, stats=stats, verbose=False)[1].select("min")[-1]
+    return algorithms.eaGenerateUpdate(toolbox, ngen=ngen, stats=stats, verbose=False)[1].select("min")[-1], 

@@ -3,6 +3,8 @@ from pymoo.algorithms.soo.nonconvex.ga import GA
 # from np.core.fromnumeric import var
 # from pymoo.problems.single import ackley
 # from pymoo.problems.single.knapsack import Knapsack
+import time
+
 from eda_definition import run_eda_instance
 from objective_functions import Ackley, Griewank, Colville, Trid, KnapSack
 from pymoo.algorithms.soo.nonconvex.es import ES
@@ -19,7 +21,7 @@ from tqdm import tqdm
 
 
 def q1(problem=Ackley(), include_eda=False):
-    iterations = 2 #30  # 1000  #10000
+    iterations = 30# 1000  #10000
 
     print(problem.name)
     es = ES()
@@ -29,23 +31,29 @@ def q1(problem=Ackley(), include_eda=False):
     de_results = []
     ga_results = []
     eda_results = []
-    if include_eda:
-        criterion = ("n_gen", 100)
-    else:
-        criterion = ("n_eval", 10000)
+
+    #criterion = ("n_eval", 10000*4)
+    criterion = ("n_gen", 200)
     for _ in tqdm(range(iterations)):
-        es_results.append(minimize(problem, es, criterion).F)
-        de_results.append(minimize(problem, de, criterion).F)
-        ga_results.append(minimize(problem, ga, criterion).F)
+        aux_es =  minimize(problem, es, criterion)
+        es_results.append(aux_es.F)
+        aux_de =  minimize(problem, de, criterion)
+        de_results.append(aux_de.F)
+        aux_de =  minimize(problem, de, criterion)
+        aux_ga = minimize(problem, ga, criterion)
+        ga_results.append(aux_ga.F)
         if include_eda:
             eda_results.append(run_eda_instance(problem, ngen=criterion[1]))
     print('resultados para Estrategia Evolutiva:')
+    print('      solucao', aux_es.X)
     print('      media:', np.mean(es_results))
     print('      desvio:', np.std(es_results))
     print('resultados para Evolucao Diferencial:')
+    print('      solucao', aux_de.X)
     print('      media:', np.mean(de_results))
     print('      desvio:', np.std(de_results))
     print('resultados para Algoritmos Genéticos:')
+    print('      solucao', aux_ga.X)
     print('      media:', np.mean(ga_results))
     print('      desvio:', np.std(ga_results))
     if include_eda:
@@ -58,6 +66,12 @@ def q1(problem=Ackley(), include_eda=False):
         best, best_results = t_test(['EDA', best], results=[eda_results, best_results])
     print('O melhor algoritmo encontrado para o problema solicotado foi: '+best)
     print('\n')
+
+    from pymoo.factory import get_problem, get_visualization
+
+    if problem.n_var == 2:
+        get_visualization("fitness-landscape", problem, angle=(45, 45), _type="surface").show()
+        get_visualization("fitness-landscape", problem, _type="contour", colorbar=True).show()
 
 
 def q2(knapsacks=None, items=None):
@@ -75,10 +89,10 @@ def q2(knapsacks=None, items=None):
         mutation=get_mutation("bin_bitflip"),
         selection = get_selection('random'),
         eliminate_duplicates=True)
-
+    start_time = time.time()
     res = minimize(problem,
                    algorithm,
-                   ('n_eval', 100000),
+                   ('n_eval', 10000*5),
                    verbose=True)
     print("Items (volume,valor): %s\n" % str(items))
 
@@ -110,6 +124,7 @@ def q2(knapsacks=None, items=None):
 
         print("Function value: %s" % res.F)
         print("Constraint violation: %s" % res.CV)
+        print("--- %s seconds ---" % (time.time() - start_time))
         print("\n\n\n")
     else:
         print("Error: Could not find a solution")

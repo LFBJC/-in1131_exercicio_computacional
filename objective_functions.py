@@ -1,5 +1,6 @@
 import numpy as np
 from pymoo.core.problem import Problem, ElementwiseProblem
+import autograd.numpy as anp
 
 #1.a
 class Ackley(Problem):
@@ -10,10 +11,13 @@ class Ackley(Problem):
                          n_constr=0,
                          xl=-32.768,
                          xu=32.768)
+        self.a=20
+        self.b=0.2
+        self.c=2
 
     def _evaluate(self, x, out, *args, **kwargs):
         part1 = -20 * np.exp(-0.2 * np.sqrt((1/self.n_var)*np.sum(x ** 2, axis=1)))
-        part2 = - np.exp(np.mean(np.cos(2 * np.pi * x))) + 20 + np.e
+        part2 = - np.exp(np.mean(np.cos(2 * np.pi * x), axis=1)) + 20 + np.e
         out["F"] = part1 + part2
 
 
@@ -29,9 +33,8 @@ class Griewank(Problem):
 
     def _evaluate(self, x, out, *args, **kwargs):
         part1 = np.sum(x**2, axis=1)/4000
-        part2 = - np.prod([np.cos(x[:, i]/np.sqrt(i+1)) for i in range(x.shape[1])])
+        part2 = - np.prod(np.cos(x / np.sqrt(np.arange(1, x.shape[1] + 1))), axis=1)
         out["F"] = part1 + part2 + 1
-
 
 class Colville(Problem):
     def __init__(self):
