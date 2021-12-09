@@ -32,8 +32,8 @@ def q1(problem=Ackley(), include_eda=False):
     ga_results = []
     eda_results = []
 
-    #criterion = ("n_eval", 10000*4)
-    criterion = ("n_gen", 200)
+    criterion = ("n_eval", 10000)
+    #criterion = ("n_gen", 200)
     for _ in tqdm(range(iterations)):
         aux_es =  minimize(problem, es, criterion)
         es_results.append(aux_es.F)
@@ -43,7 +43,8 @@ def q1(problem=Ackley(), include_eda=False):
         aux_ga = minimize(problem, ga, criterion)
         ga_results.append(aux_ga.F)
         if include_eda:
-            eda_results.append(run_eda_instance(problem, ngen=criterion[1]))
+            aux_eda, res_eda = run_eda_instance(problem, ngen=criterion[1])
+            eda_results.append(aux_eda)
     print('resultados para Estrategia Evolutiva:')
     print('      solucao', aux_es.X)
     print('      media:', np.mean(es_results))
@@ -58,6 +59,7 @@ def q1(problem=Ackley(), include_eda=False):
     print('      desvio:', np.std(ga_results))
     if include_eda:
         print('resultados para Algoritmos de Estimação de Distribuição:')
+        print('      solucao', res_eda[0])    
         print('      media:', np.mean(eda_results))
         print('      desvio:', np.std(eda_results))
     best, best_results = t_test(['ES', 'DE'], results=[es_results, de_results])

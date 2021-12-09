@@ -77,5 +77,7 @@ def run_eda_instance(problem, ngen):
     # hof = tools.HallOfFame(1, similar=numpy.array_equal)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("min", numpy.mean)
+    pop, logbook = algorithms.eaGenerateUpdate(toolbox, ngen=ngen, stats=stats, 
+                    verbose=False)
 
-    return algorithms.eaGenerateUpdate(toolbox, ngen=ngen, stats=stats, verbose=False)[1].select("min")[-1], 
+    return logbook.select("min")[-1], tools.selBest(pop, k=1)
