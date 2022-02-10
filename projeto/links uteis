@@ -24,3 +24,8 @@ psblib datasets: http://www.om-db.wi.tum.de/psplib/library.html
 
 cpp implementation:
 https://github.com/lyandut/MyGeneticForRCPSP
+
+
+
+DE for MRCPSP
+doi:10.1016/j.cor.2008.11.010
