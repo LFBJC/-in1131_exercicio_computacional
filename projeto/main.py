@@ -28,7 +28,7 @@ x_results = []
 fitness_results = []
 none_count = 0
 for _ in tqdm(range(ITERATIONS)):
-    problem = MRCPSP(graph=graph, times_dict=times_dict)
+    problem = MRCPSP(graph=graph, times_dict=times_dict, r_cap_dict={}, r_cons_dict={})
     de = DE()
     res = minimize(problem, de, CRITERION)
     if res.F is not None:

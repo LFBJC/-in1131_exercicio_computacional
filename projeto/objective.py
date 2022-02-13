@@ -3,32 +3,43 @@ import numpy as np
 
 
 class MRCPSP(Problem):
-    def __init__(self, graph: dict, times_dict):
+    def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}):
         self.graph = graph
-        self.all_nodes = list(set([task for k, v in graph.items() for task in [k] + v]))
+        self.all_tasks = list(set([task for k, v in graph.items() for task in [k] + v]))
         self.times_dict = times_dict
+        self.r_cap_dict = r_cap_dict
+        self.time_step_size = min(times_dict.values())/sum(times_dict.values())
+        self.resources_to_constraint_vectors = {k: np.zeros_like(self.all_tasks) for k in r_cap_dict.keys()}
+        for resource in self.resources_to_constraint_vectors.keys():
+            task_indices = [self.all_tasks.index(task_resource_pair[0])
+                            for task_resource_pair in r_cons_dict.keys()
+                            if task_resource_pair[1] == resource]
+            for task_index in task_indices:
+                self.resources_to_constraint_vectors[resource][task_index] = r_cons_dict[(resource, self.all_tasks[task_index])]
         super().__init__(
-            n_var=len(self.all_nodes),
+            n_var=len(self.all_tasks),
             n_obj=1,
-            n_constr=sum([len(v) for v in graph.values()])+1,
+            n_constr=sum([len(v) for v in graph.values()])+len(r_cap_dict.keys())/self.time_step_size,
             xl=0,
             xu=sum(list(times_dict.values()))
         )
 
     def _evaluate(self, x, out, *args, **kwargs):
         max_start_times = np.max(x, axis=1)
-        last_tasks_by_indiv = [self.all_nodes[max_time_index] for max_time_index in np.argmax(x, axis=1)]
+        last_tasks_by_indiv = [self.all_tasks[max_time_index] for max_time_index in np.argmax(x, axis=1)]
         durations_of_last_tasks = np.array([self.times_dict[last_task] for last_task in last_tasks_by_indiv])
         # adjusting the format in order to get a column vector that may be summed up with the initial times of the last
         # tasks of each individual
         durations_of_last_tasks = np.transpose(durations_of_last_tasks)
-        out["F"] = max_start_times + durations_of_last_tasks
+        ending_time_of_all_tasks = max_start_times + durations_of_last_tasks
+        out["F"] = ending_time_of_all_tasks
+        # precedence constraints
         restrictions = np.array([])
-        for node in self.all_nodes:
+        for node in self.all_tasks:
             if node in self.graph.keys():
                 for requirement in self.graph[node]:
-                    node_start_times = x[:, self.all_nodes.index(node)]
-                    requirement_start_times = x[:, self.all_nodes.index(requirement)]
+                    node_start_times = x[:, self.all_tasks.index(node)]
+                    requirement_start_times = x[:, self.all_tasks.index(requirement)]
                     requirement_duration_vector = np.full(shape=x.shape[0], fill_value=self.times_dict[requirement])
                     if restrictions.shape == (0,):
                         restrictions = requirement_start_times+requirement_duration_vector-node_start_times
@@ -39,5 +50,27 @@ class MRCPSP(Problem):
                         ])
             #  requirement_start_times+self.times_dict[requirement] -node_start_times <= 0
             # -> requirement_start_times+self.times_dict[requirement] <= node_start_times
+        # end_times = x + np.repeat(np.array([times_dict[node] for node in all_tasks]), x.shape[0], axis=1)
+        # time_intervals = np.sort(np.unique(np.concatenate([x, end_times], axis=1), axis=1), axis=1)
+        # dictionary_from_time_interval_to_activities = {}
+        # resource constraints
+        for resource, capacity in self.r_cap_dict.items():
+            resource_constraint_matrix = np.repeat(
+                self.resources_to_constraint_vectors[resource][np.newaxis, :],
+                x.shape[0],
+                axis=0
+            )
+            for time_interval_start in range(0, ending_time_of_all_tasks, self.time_step_size):
+                tasks_at_this_moment = np.logical_and(
+                    x >= time_interval_start,
+                    x < time_interval_start+self.time_step_size
+                ).astype(np.int32)*resource_constraint_matrix
+                if restrictions.shape == (0,):
+                    restrictions = np.sum(tasks_at_this_moment, axis=1)
+                else:
+                    restrictions = np.column_stack([
+                        restrictions,
+                        np.sum(tasks_at_this_moment, axis=1)
+                    ])
         out["G"] = restrictions
 

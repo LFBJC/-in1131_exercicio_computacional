@@ -1,3 +1,17 @@
+import json
+from objective import MRCPSP
+
+
+def problem_from_json(file_name):
+    problem_dict = json.load(file_name)
+    act_pre = problem_dict['act_pre']
+    graph = {k: (act_pre[act_pre.index(k)] if k in act_pre else []) for k in range(problem_dict['act_count'])}
+    times_dict = {d['index']: d['value'] for d in problem_dict['act_proc']}
+    r_cap_dict = {d['index']: d['value'] for d in problem_dict['r_cap']}
+    r_cons_dict = {tuple(d['index']): d['value'] for d in problem_dict['r_cons']}
+    return MRCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+
+
 def random_key_decoder(x, reference_list):
     sorted_x = list(sorted(x))
     return [reference_list[sorted_x.index(e)] for e in x]
