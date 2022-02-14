@@ -9,7 +9,7 @@ class MRCPSP(Problem):
         self.times_dict = times_dict
         self.r_cap_dict = r_cap_dict
         self.r_cons_dict = r_cons_dict
-        self.time_step_size = min(times_dict.values())/sum(times_dict.values())
+        self.time_step_size = min(times_dict.values())
         self.resources_to_constraint_vectors = {k: np.zeros_like(self.all_tasks) for k in self.r_cap_dict.keys()}
         for resource in self.resources_to_constraint_vectors.keys():
             task_indices = [self.all_tasks.index(task_resource_pair[0]) for task_resource_pair in self.r_cons_dict.keys() if task_resource_pair[1] == resource]
@@ -18,7 +18,7 @@ class MRCPSP(Problem):
         super().__init__(
             n_var=len(self.all_tasks),
             n_obj=1,
-            n_constr=sum([len(v) for v in graph.values()])+len(self.r_cap_dict.keys())/self.time_step_size,
+            n_constr=sum([len(v) for v in graph.values()])+len(self.r_cap_dict.keys())*sum(times_dict.values()),
             xl=0,
             xu=sum(list(times_dict.values()))
         )
@@ -57,7 +57,7 @@ class MRCPSP(Problem):
                 axis=0
             )
 
-            for time_interval_start in np.arange(0, max(ending_time_of_all_tasks), self.time_step_size):
+            for time_interval_start in np.arange(0, sum(self.times_dict.values()), self.time_step_size):
                 tasks_at_this_moment = np.logical_and(x >= time_interval_start, x < time_interval_start+self.time_step_size).astype(np.int32)*resource_constraint_matrix
                 if restrictions.shape == (0,):
                     restrictions = np.sum(tasks_at_this_moment, axis=1)
