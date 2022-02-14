@@ -49,9 +49,6 @@ class MRCPSP(Problem):
                         ])
             #  requirement_start_times+self.times_dict[requirement] -node_start_times <= 0
             # -> requirement_start_times+self.times_dict[requirement] <= node_start_times
-        # end_times = x + np.repeat(np.array([times_dict[node] for node in all_tasks]), x.shape[0], axis=1)
-        # time_intervals = np.sort(np.unique(np.concatenate([x, end_times], axis=1), axis=1), axis=1)
-        # dictionary_from_time_interval_to_activities = {}
         # resource constraints
         for resource, capacity in self.r_cap_dict.items():
             resource_constraint_matrix = np.repeat(
