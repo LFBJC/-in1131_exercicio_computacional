@@ -60,8 +60,7 @@ class MRCPSP(Problem):
                 axis=0
             )
 
-            #for time_interval_start in range(0, ending_time_of_all_tasks, self.time_step_size):
-            for time_interval_start in ending_time_of_all_tasks:
+            for time_interval_start in np.arange(0, max(ending_time_of_all_tasks), self.time_step_size):
                 tasks_at_this_moment = np.logical_and(x >= time_interval_start, x < time_interval_start+self.time_step_size).astype(np.int32)*resource_constraint_matrix
                 if restrictions.shape == (0,):
                     restrictions = np.sum(tasks_at_this_moment, axis=1)
