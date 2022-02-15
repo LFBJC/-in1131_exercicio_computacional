@@ -2,7 +2,7 @@ from pymoo.core.problem import Problem
 import numpy as np
 
 
-class MRCPSP(Problem):
+class RCPSP(Problem):
     def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}):
         self.graph = graph
         self.all_tasks = list(set([task for k, v in graph.items() for task in [k] + v]))
