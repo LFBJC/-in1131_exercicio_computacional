@@ -1,5 +1,32 @@
 from pymoo.core.problem import Problem
 import numpy as np
+from utils import khan
+
+
+class RCPSP_RandomKeyRepresentation(Problem):
+    def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}):
+        self.graph = graph
+        self.all_tasks = khan(graph)
+        self.times_dict = times_dict
+        self.r_cap_dict = r_cap_dict
+        self.r_cons_dict = r_cons_dict
+        self.time_step_size = min(times_dict.values())
+        self.resources_to_constraint_vectors = {k: np.zeros_like(self.all_tasks) for k in self.r_cap_dict.keys()}
+        for resource in self.resources_to_constraint_vectors.keys():
+            task_indices = [self.all_tasks.index(task_resource_pair[0]) for task_resource_pair in self.r_cons_dict.keys() if task_resource_pair[1] == resource]
+            for task_index in task_indices:
+                self.resources_to_constraint_vectors[resource][task_index] = self.r_cons_dict[(self.all_tasks[task_index], resource)]
+        super().__init__(
+            n_var=len(self.all_tasks),
+            n_obj=1,
+            n_constr=sum([len(v) for v in graph.values()])+len(self.r_cap_dict.keys())*sum(times_dict.values()),
+            xl=0,
+            xu=1
+        )
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        # TODO implement this function
+        pass
 
 
 class RCPSP(Problem):
