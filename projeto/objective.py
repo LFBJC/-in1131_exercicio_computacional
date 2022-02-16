@@ -1,16 +1,18 @@
 from pymoo.core.problem import Problem
 import numpy as np
 from utils import khan
-
+from copy import copy
 
 class RCPSP_RandomKeyRepresentation(Problem):
-    def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}):
+    def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}, r_count=None, act_pre=None):
         self.graph = graph
         self.all_tasks = khan(graph)
         self.times_dict = times_dict
         self.r_cap_dict = r_cap_dict
         self.r_cons_dict = r_cons_dict
         self.time_step_size = min(times_dict.values())
+        self.r_count = r_count
+        self.act_pre = act_pre
         self.resources_to_constraint_vectors = {k: np.zeros_like(self.all_tasks) for k in self.r_cap_dict.keys()}
         for resource in self.resources_to_constraint_vectors.keys():
             task_indices = [self.all_tasks.index(task_resource_pair[0]) for task_resource_pair in self.r_cons_dict.keys() if task_resource_pair[1] == resource]
@@ -33,6 +35,51 @@ class RCPSP_RandomKeyRepresentation(Problem):
                 idx, = np.where(indvs[arr] == ordenate_x[i])
                 indvs[arr][idx[0]] = i+1
         #https://github.com/bantosik/py-rcpsp/blob/a9c180f8425a60af9cb18971378b89d7843aea6f/SingleModeClasses.py#L1
+        #criando dicionario de tempos de uso
+        resource_usages_in_time = {}
+
+        total_time_all_activit = sum(value for key, value in (self.times_dict.items()))
+
+        for sec in range(total_time_all_activit+1):
+            resource_usages_in_time[sec] = {}
+            for key, value in self.r_cap_dict.items():
+                key_aux = {key: (value,0)} #tupla capacidade/em uso
+                resource_usages_in_time[sec].update(key_aux)
+
+        time_points = [0]
+        indvs_after_sgs = []
+        for ind in indvs:
+            solution = []
+            for activity in ind:
+                activity = int(activity)
+                print(activity)
+                last_time = time_points[-1]
+                start_time = 0
+                for time_unit in reversed(time_points):
+                    actual_resource_usage = copy(resource_usages_in_time[time_unit])
+                    #add resource usage
+                    for resource in range(1, self.r_count+1):
+                        #add_resource_usage
+                        y = list(actual_resource_usage[resource])
+                        y[1] = y[1] + self.r_cons_dict[(activity, resource)]
+                        actual_resource_usage[resource] = tuple(y) 
+                        print("act" + str(self.act_pre[activity]['value']))
+                        print("sol" + str(solution))
+                        for preact in self.act_pre[activity]['value']:
+                            #preact = int(preact)
+                            print(solution[preact] + self.times_dict[preact])
+                            print(time_unit)
+                            if (solution[preact] + self.times_dict[preact] >  time_unit) or (list(actual_resource_usage[resource])[0] < list(actual_resource_usage[resource])[1]):
+                                    print('oi')
+                                    start_time = last_time
+                                    break
+                        else:
+                            last_time = time_unit
+                tuple_start_time = {activity: start_time}
+                solution.append(tuple_start_time)            
+            indvs_after_sgs.append(solution)
+            print(solution)
+        #print(indvs_after_sgs[50])
         out["F"] = 1
 
 class RCPSP(Problem):

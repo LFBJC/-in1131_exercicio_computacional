@@ -44,9 +44,9 @@ while True:
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):
-            graph, times_dict, r_cap_dict, r_cons_dict  = problem_from_json(file_name)
+            graph, times_dict, r_cap_dict, r_cons_dict, r_count, act_pre  = problem_from_json(file_name)
             #problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
-            problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+            problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
             de = DE()
             res = minimize(problem, de, CRITERION)
             if res.F is not None:

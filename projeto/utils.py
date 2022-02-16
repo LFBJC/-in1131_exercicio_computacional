@@ -14,7 +14,8 @@ def problem_from_json(file_name):
     times_dict = {d['index']: d['value'] for d in problem_dict['act_proc']}
     r_cap_dict = {d['index']: d['value'] for d in problem_dict['r_cap']}
     r_cons_dict = {tuple(d['index']): d['value'] for d in problem_dict['r_cons']}
-    return graph, times_dict, r_cap_dict, r_cons_dict
+    r_count = problem_dict['r_count']
+    return graph, times_dict, r_cap_dict, r_cons_dict, r_count, problem_dict['act_pre']
     #return MRCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
 
 
@@ -46,6 +47,5 @@ def khan(graph):
         print("Graph has cycles; It is not a directed acyclic graph ... ")
         return None
     else:
-        print(topological_sort)
         return topological_sort
         
