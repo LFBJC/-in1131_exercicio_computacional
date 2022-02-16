@@ -1,12 +1,16 @@
 import json
-from objective import MRCPSP
-
 
 def problem_from_json(file_name):
     with open(file_name) as json_file:
         problem_dict = json.load(json_file)
     act_pre = problem_dict['act_pre']
-    graph = {(k): (act_pre[act_pre.index(k)] if k in act_pre else []) for k in range(1, problem_dict['act_count']+1)}
+    #graph = {k: (act_pre[act_pre.index(k)] if k in act_pre else []) for k in range(1, problem_dict['act_count']+1)}
+    graph = {} #fixed graph generator
+    for k in range(1, problem_dict['act_count']+1):
+        if act_pre[k]['value'] == [0]:
+            graph[k] = []
+        else:
+            graph[k] = act_pre[k]['value']
     times_dict = {d['index']: d['value'] for d in problem_dict['act_proc']}
     r_cap_dict = {d['index']: d['value'] for d in problem_dict['r_cap']}
     r_cons_dict = {tuple(d['index']): d['value'] for d in problem_dict['r_cons']}
@@ -19,19 +23,29 @@ def random_key_decoder(x, reference_list):
     return [reference_list[sorted_x.index(e)] for e in x]
 
 
+#https://codereview.stackexchange.com/questions/239008/python-implementation-of-kahns-algorithm
 def khan(graph):
-    ret = []
-    no_incoming_edge = [key for key in graph.keys() if graph[key] == []]
-    while no_incoming_edge != []:
-        current_node, no_incoming_edge = no_incoming_edge, graph[no_incoming_edge]
-        ret.append(current_node)
-        for i, component in enumerate(graph.items()):
-            if current_node in component[1]:
-                graph[i][1] = [node for node in component[1] if node != current_node]
-                if graph[i][1] == []:
-                    no_incoming_edge.append(component[0])
-    edges = [(key, x) for key, value in graph.items() if value != [] for x in value]
-    if edges != []:
-        raise ValueError("The graph has cycles")
+    in_degree = {u : 0 for u in graph}
+    for vertices, neighbors in graph.items():
+        in_degree.setdefault(vertices, 0)
+        for neighbor in neighbors:
+            in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
+
+    no_indegree_vertices = {vertex for vertex, count in in_degree.items() if count == 0}
+
+    topological_sort = []
+    while no_indegree_vertices:
+        vertex = no_indegree_vertices.pop()
+        topological_sort.append(vertex)
+        for neighbor in graph.get(vertex, []):
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                no_indegree_vertices.add(neighbor)
+
+    if len(topological_sort) != len(in_degree):
+        print("Graph has cycles; It is not a directed acyclic graph ... ")
+        return None
     else:
-        return ret
+        print(topological_sort)
+        return topological_sort
+        

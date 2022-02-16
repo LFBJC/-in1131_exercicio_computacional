@@ -1,6 +1,6 @@
 # from DE import ourDE
 # from utils import khan
-from objective import RCPSP
+from objective import RCPSP, RCPSP_RandomKeyRepresentation
 from utils import problem_from_json
 import sys, os, json
 
@@ -45,7 +45,8 @@ while True:
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):
             graph, times_dict, r_cap_dict, r_cons_dict  = problem_from_json(file_name)
-            problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+            #problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+            problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
             de = DE()
             res = minimize(problem, de, CRITERION)
             if res.F is not None:
