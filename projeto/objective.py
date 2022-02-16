@@ -1,7 +1,7 @@
 from pymoo.core.problem import Problem
 import numpy as np
-from utils import khan
-from copy import copy
+from utils import khan, random_key_decoder
+
 
 class RCPSP_RandomKeyRepresentation(Problem):
     def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}, r_count=None, act_pre=None):
@@ -27,13 +27,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
         )
 
     def _evaluate(self, x, out, *args, **kwargs):
-        indvs = x
-        #RandomKey convert
-        for arr in range(len(indvs)):
-            ordenate_x = np.sort(indvs[arr])
-            for i in range(len(ordenate_x)):
-                idx, = np.where(indvs[arr] == ordenate_x[i])
-                indvs[arr][idx[0]] = i+1
+        indvs = random_key_decoder(x, self.all_tasks)
         #https://github.com/bantosik/py-rcpsp/blob/a9c180f8425a60af9cb18971378b89d7843aea6f/SingleModeClasses.py#L1
         #criando dicionario de tempos de uso
         resource_usages_in_time = {}
@@ -81,6 +75,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
             print(solution)
         #print(indvs_after_sgs[50])
         out["F"] = 1
+
 
 class RCPSP(Problem):
     def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}):
