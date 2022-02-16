@@ -32,7 +32,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
             for i in range(len(ordenate_x)):
                 idx, = np.where(indvs[arr] == ordenate_x[i])
                 indvs[arr][idx[0]] = i+1
-        
+        #https://github.com/bantosik/py-rcpsp/blob/a9c180f8425a60af9cb18971378b89d7843aea6f/SingleModeClasses.py#L1
         out["F"] = 1
 
 class RCPSP(Problem):
