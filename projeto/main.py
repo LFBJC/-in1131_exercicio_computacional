@@ -8,6 +8,7 @@ from tqdm import tqdm
 import numpy as np
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
+from operators import SamplingRespectingPrecedence
 
 CRITERION = ("n_gen", 500)
 ITERATIONS = 1
@@ -44,10 +45,10 @@ while True:
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):
-            graph, times_dict, r_cap_dict, r_cons_dict  = problem_from_json(file_name)
-            #problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+            graph, times_dict, r_cap_dict, r_cons_dict = problem_from_json(file_name)
+            # problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
             problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
-            de = DE()
+            de = DE()  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
             res = minimize(problem, de, CRITERION)
             if res.F is not None:
                 x_results.append(res.X)
