@@ -37,66 +37,19 @@ class RCPSP_RandomKeyRepresentation(Problem):
         indvs_after_sgs = []
         makespans = []
 
-        #Serial SGS para todos os individuos
-
         for ind in indvs[:]:
-            solution = []
-            resource_usages_in_time = {}
-            time_points = [0]
-
-            for sec in range(total_time_all_activit+1):
-                resource_usages_in_time[sec] = {}
-                for key, value in self.r_cap_dict.items():
-                    key_aux = {key: (value,0)} #tupla capacidade/em uso
-                    resource_usages_in_time[sec].update(key_aux)
-            
-            solution.append({0: 0})  #inicializando dummy
-            for activity in ind:
-                activity = int(activity)
-                last_time = time_points[-1]
-                start_time = 0
-                for time_unit in reversed(time_points):
-                    actual_resource_usage = copy(resource_usages_in_time[time_unit])
-                    actual_resource_usage = add_resource_usage(actual_resource_usage, self.r_count, self.r_cons_dict, activity)
-                    if is_resource_usage_greater_than_supply(self.r_count, actual_resource_usage) or activity_in_conflict_in_precedence(self.act_pre, activity, time_unit, self.times_dict, solution):
-                            start_time = last_time
-                            break
-                    else:
-                        last_time = time_unit
-                tuple_start_time = {activity: start_time}
-                solution.append(tuple_start_time)
-                time_points = insert_value_to_ordered_list(time_points, start_time)
-                time_points = insert_value_to_ordered_list(time_points, start_time + self.times_dict[activity])   
-                resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, self.times_dict, self.r_count, self.r_cons_dict)
+            solution = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
+            mkspan = compute_makespan(solution, self.times_dict)
             indvs_after_sgs.append(solution)
-            sol_sorted_by_values = sorted(solution, key=lambda d: list(d.values())) 
-            mkspan = list(sol_sorted_by_values[-1].items())[0][1] + self.times_dict[list(sol_sorted_by_values[-1].items())[0][0]]
             makespans.append(mkspan)
-        
-        best_makespan = min(makespans)
-        best_sol_idx = makespans.index(best_makespan)
-
-        out["F"] = min(makespans)
+        #FIM Serial SGS para todos os individuos
+        (check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict))
+        import time; time.sleep(900)
+        out["F"] = (np.array(makespans))
 
         # resource constraints
-        for resource, capacity in self.r_cap_dict.items():
-            resource_constraint_matrix = np.repeat(
-                self.resources_to_constraint_vectors[resource][np.newaxis, :],
-                x.shape[0],
-                axis=0
-            )
-
-            for time_interval_start in np.arange(0, sum(self.times_dict.values()), self.time_step_size):
-                tasks_at_this_moment = np.logical_and(x >= time_interval_start, x < time_interval_start+self.time_step_size).astype(np.int32)*resource_constraint_matrix
-                if restrictions.shape == (0,):
-                    restrictions = np.sum(tasks_at_this_moment, axis=1)
-                else:
-                    restrictions = np.column_stack([
-                        restrictions,
-                        np.sum(tasks_at_this_moment, axis=1)
-                    ])
-        print(restrictions)
-        out["G"] = restrictions
+        
+        out["G"] = check_if_solution_feasible()
 
 
 class RCPSP(Problem):
@@ -128,7 +81,11 @@ class RCPSP(Problem):
         # tasks of each individual
         durations_of_last_tasks = np.transpose(durations_of_last_tasks)
         ending_time_of_all_tasks = max_start_times + durations_of_last_tasks
+        print((ending_time_of_all_tasks.shape))
+        import time
+        time.sleep(900)
         out["F"] = ending_time_of_all_tasks
+        
         # precedence constraints
         restrictions = np.array([])
         for node in self.all_tasks:

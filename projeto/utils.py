@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import bisect
+from copy import copy
 
 def problem_from_json(file_name):
     with open(file_name) as json_file:
@@ -115,19 +116,59 @@ def insert_value_to_ordered_list(l, value):
         l.insert(i,value)
     return l
 
-def compute_makespan():
-    return 1
+
+def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, times_dict, act_pre):
+    #INICIO Serial SGS para todos os individuos
+    
+    solution = []
+    resource_usages_in_time = {}
+    time_points = [0]
+    for sec in range(total_time_all_activit+1):
+        resource_usages_in_time[sec] = {}
+        for key, value in r_cap_dict.items():
+            key_aux = {key: (value,0)} #tupla capacidade/em uso
+            resource_usages_in_time[sec].update(key_aux)
+    
+    solution.append({0: 0})  #inicializando dummy
+    for activity in ind:
+        activity = int(activity)
+        last_time = time_points[-1]
+        start_time = 0
+        for time_unit in reversed(time_points):
+            actual_resource_usage = copy(resource_usages_in_time[time_unit])
+            actual_resource_usage = add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity)
+            if is_resource_usage_greater_than_supply(r_count, actual_resource_usage) or activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
+                    start_time = last_time
+                    break
+            else:
+                last_time = time_unit
+        tuple_start_time = {activity: start_time}
+        solution.append(tuple_start_time)
+        time_points = insert_value_to_ordered_list(time_points, start_time)
+        time_points = insert_value_to_ordered_list(time_points, start_time + times_dict[activity])   
+        resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, times_dict, r_count, r_cons_dict)
+    return solution
+
+def compute_makespan(solution, times_dict):
+    sol_sorted_by_values = sorted(solution, key=lambda d: list(d.values())) 
+    return list(sol_sorted_by_values[-1].items())[0][1] + times_dict[list(sol_sorted_by_values[-1].items())[0][0]]
 
 
-def check_if_solution_feasible(solution):
-    makespan = compute_makespan(solution)
+def check_if_solution_feasible(solution, times_dict, r_cap_dict, r_count, r_cons_dict):
+    makespan = compute_makespan(solution, times_dict)
+    #total_time_all_activit = sum(value for key, value in (times_dict.items()))
+    resource_usage = {}
+    for sec in range(makespan+1):
+        resource_usage[sec] = {}
+        for key, value in r_cap_dict.items():
+            key_aux = {key: (value,0)} #tupla capacidade/em uso
+            resource_usage[sec].update(key_aux)
     for i in range(makespan):
-        resource_usage = ResourceUsage()
-        for activity, start_time in solution.iteritems():
-            if start_time <= i < start_time + activity.duration:
-                resource_usage.add_resource_usage(activity.demand)
-        
-        if resource_usage.is_resource_usage_greater_than_supply( self.resources):
-            return False
-    return True
+        for dic in solution:
+            for activity, start_time in dic.items():
+                if start_time <= i < start_time + times_dict[activity]:
+                    resource_usage[i] = add_resource_usage(resource_usage[i], r_count, r_cons_dict, activity) 
+        if is_resource_usage_greater_than_supply(r_count, resource_usage[i]):
+            return -1
+    return 1
     
