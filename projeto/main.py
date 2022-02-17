@@ -2,7 +2,7 @@
 # from utils import khan
 from objective import RCPSP, RCPSP_RandomKeyRepresentation
 from utils import problem_from_json
-import sys, os, json
+import sys, os, json, math
 
 from tqdm import tqdm
 import numpy as np
@@ -10,7 +10,7 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
 from operators import SamplingRespectingPrecedence
 
-CRITERION = ("n_gen", 500)
+CRITERION = ("n_gen", 1000)
 ITERATIONS = 1
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#
@@ -51,7 +51,8 @@ while True:
             graph, times_dict, r_cap_dict, r_cons_dict, r_count, act_pre = problem_from_json(file_name)
             # problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
             problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
-            de = DE()  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
+            pop= math.exp(3.551 + (22.72/jobs))
+            de = DE(pop_size=int(pop))  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
             res = minimize(problem, de, CRITERION)
             if res.F is not None:
                 x_results.append(res.X)
@@ -66,3 +67,4 @@ while True:
         print('      Desvio (para os casos em que soluções foram encontradas):', np.std(fitness_results))
     else:
         print("\nProblema não existe, digite uma opção válida.")
+    break

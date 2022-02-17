@@ -25,14 +25,11 @@ def problem_from_json(file_name):
 #https://codereview.stackexchange.com/questions/239008/python-implementation-of-kahns-algorithm
 def khan(graph):
     in_degree = {u : 0 for u in graph}
-    out_degree = {u : 0 for u in graph}
     for vertices, neighbors in graph.items():
         in_degree.setdefault(vertices, 0)
         for neighbor in neighbors:
             in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
-            out_degree[vertices] = out_degree.get(neighbor, 0) + 1
     no_indegree_vertices = {vertex for vertex, count in in_degree.items() if count == 0}
-    no_outdegree_vertices = {vertex for vertex, count in out_degree.items() if count == 0}
 
     topological_sort = []
     while no_indegree_vertices:
@@ -43,12 +40,12 @@ def khan(graph):
             if in_degree[neighbor] == 0:
                 no_indegree_vertices.add(neighbor)
 
-    assert all([topological_sort.index(v) < topological_sort.index(k) for k in graph.keys() for v in graph[k]])
+    #assert all([topological_sort.index(v) < topological_sort.index(k) for k in graph.keys() for v in graph[k]])
     if len(topological_sort) != len(in_degree):
         print("Graph has cycles; It is not a directed acyclic graph ... ")
         return None
     else:
-        return topological_sort, no_outdegree_vertices
+        return topological_sort
 
 
 def random_key_decoder(x, reference_list):
@@ -169,6 +166,6 @@ def check_if_solution_feasible(solution, times_dict, r_cap_dict, r_count, r_cons
                 if start_time <= i < start_time + times_dict[activity]:
                     resource_usage[i] = add_resource_usage(resource_usage[i], r_count, r_cons_dict, activity) 
         if is_resource_usage_greater_than_supply(r_count, resource_usage[i]):
-            return -1
-    return 1
+            return 1.0
+    return -1.0
     

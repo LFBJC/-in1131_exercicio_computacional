@@ -7,7 +7,7 @@ from copy import copy
 class RCPSP_RandomKeyRepresentation(Problem):
     def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}, r_count=None, act_pre=None):
         self.graph = graph
-        self.all_tasks, self.no_outdegree_vertices = khan(graph)
+        self.all_tasks = khan(graph)
         self.times_dict = times_dict
         self.r_cap_dict = r_cap_dict
         self.r_cons_dict = r_cons_dict
@@ -36,20 +36,18 @@ class RCPSP_RandomKeyRepresentation(Problem):
 
         indvs_after_sgs = []
         makespans = []
-
+        restrictions = [[0]*1]*len(indvs)
+        count = 0
         for ind in indvs[:]:
             solution = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
             mkspan = compute_makespan(solution, self.times_dict)
             indvs_after_sgs.append(solution)
-            makespans.append(mkspan)
-        #FIM Serial SGS para todos os individuos
-        (check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict))
-        import time; time.sleep(900)
-        out["F"] = (np.array(makespans))
-
-        # resource constraints
-        
-        out["G"] = check_if_solution_feasible()
+            makespans.append(float(mkspan))
+            #FIM Serial SGS para todos os individuos
+            restrictions[count][0] = check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict)
+            count+=1
+        out["F"] = np.array(makespans)
+        out["G"] = np.array(restrictions)
 
 
 class RCPSP(Problem):
@@ -81,9 +79,6 @@ class RCPSP(Problem):
         # tasks of each individual
         durations_of_last_tasks = np.transpose(durations_of_last_tasks)
         ending_time_of_all_tasks = max_start_times + durations_of_last_tasks
-        print((ending_time_of_all_tasks.shape))
-        import time
-        time.sleep(900)
         out["F"] = ending_time_of_all_tasks
         
         # precedence constraints
