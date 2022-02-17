@@ -127,7 +127,7 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
             key_aux = {key: (value,0)} #tupla capacidade/em uso
             resource_usages_in_time[sec].update(key_aux)
     
-    #solution.append({0: 0})  #inicializando dummy
+    solution.append({0: 0})  #inicializando dummy
     for activity in ind:
         activity = int(activity)
         last_time = time_points[-1]
