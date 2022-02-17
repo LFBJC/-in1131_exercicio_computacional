@@ -35,19 +35,22 @@ none_count = 0
 #----------------versão nova---------------#
 while True:
     print("\nenter 'ctrl + c' to finish")
-    jobs = input("\nSelecione o número de jobs (30, 60, 90 ou 120):\n" )
+    #jobs = input("\nSelecione o número de jobs (30, 60, 90 ou 120):\n" )
+    jobs = 30
     if int(jobs) == 120:
-        aux = input("Selecione um número entre 1 e 60:\n" )
+    #    aux = input("Selecione um número entre 1 e 60:\n" )
+        aux = 1
     else:
-        aux = input("Selecione um número entre 1 e 48:\n" )
-       
-    aux2 = input("Selecione um número entre 1 e 10:\n" )
+    #    aux = input("Selecione um número entre 1 e 48:\n" )
+        aux = 1
+    #aux2 = input("Selecione um número entre 1 e 10:\n" )
+    aux2=1
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):
-            graph, times_dict, r_cap_dict, r_cons_dict = problem_from_json(file_name)
+            graph, times_dict, r_cap_dict, r_cons_dict, r_count, act_pre = problem_from_json(file_name)
             # problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
-            problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
+            problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
             de = DE()  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
             res = minimize(problem, de, CRITERION)
             if res.F is not None:
