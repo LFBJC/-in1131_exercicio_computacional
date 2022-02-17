@@ -39,15 +39,20 @@ class RCPSP_RandomKeyRepresentation(Problem):
         restrictions = [[0]*1]*len(indvs)
         count = 0
         for ind in indvs[:]:
-            solution = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
+            solution, resource_usages_in_time = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
             mkspan = compute_makespan(solution, self.times_dict)
             indvs_after_sgs.append(solution)
             makespans.append(float(mkspan))
             #FIM Serial SGS para todos os individuos
-            restrictions[count][0] = check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict)
+            restrictions[count][0] = check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict, self.act_pre)
             count+=1
+            print(solution)
+            print(resource_usages_in_time)
+            import time; time.sleep(50)
+        
         print(min(makespans))
         print(indvs_after_sgs[makespans.index(min(makespans))])
+
         out["F"] = np.array(makespans)
         out["G"] = np.array(restrictions)
 

@@ -46,7 +46,7 @@ def khan(graph):
         print("Graph has cycles; It is not a directed acyclic graph ... ")
         return None
     else:
-        print(topological_sort)
+        #print(topological_sort)
         return topological_sort
 
 
@@ -64,21 +64,39 @@ def another_random_key_decoder(indvs, reference_list):
     return indvs
 
 def activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
-    #essa funcao ta errada - fix
+    #essa funcao ta errada? - fix
     if act_pre[activity]['value'] == []:
         return False
+    preds_in_sol = []    
+    for dic in solution:
+        preds_in_sol.append(list(dic.keys())[0])
+        
     for preact in act_pre[activity]['value']:
-        if not solution:
+        # print("\nHere")
+        # print('atividiade', activity)
+        # print('preatividade',  preact)
+        if preact in preds_in_sol: #Se a preatividade existe,continue
+            preact_start_time = None
+            for dic in solution:    #Pegar o tempo de inicio
+                for act, start_time in dic.items():
+                    if act == preact:
+                        preact_start_time = start_time
+            #import time; time.sleep(60)
+            # print(solution)
+            # print('preact incia em: ',  preact_start_time)
+            # print('preact duração: ', times_dict[preact])
+            # print('tempo q ele vai ser colocado: ', time_unit)
+            if preact_start_time + times_dict[preact] > time_unit:
+                return True
+            else:
+                return False
+        else: #se a preatividade ainda n existe, retorne há conflito
             return True
-        else:
-            for dic in solution:
-                if preact in dic.keys():
-                    if (dic[preact] + times_dict[preact] > time_unit):
-                        return True
-                    else:
-                        return False
-                else:
-                    return True
+
+# print(activity)
+# print(act_pre[activity]['value'])
+# import time; time.sleep(60)
+
 
 def is_resource_usage_greater_than_supply(r_count, actual_resource_usage):
     for resource in range(1, r_count+1):
@@ -136,7 +154,7 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
         start_time = 0
         for time_unit in reversed(time_points):
             actual_resource_usage = copy(resource_usages_in_time[time_unit])
-            actual_resource_usage = add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity)
+            actual_resource_usage = add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity)            
             if is_resource_usage_greater_than_supply(r_count, actual_resource_usage) or activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
                     start_time = last_time
                     break
@@ -147,14 +165,14 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
         time_points = insert_value_to_ordered_list(time_points, start_time)
         time_points = insert_value_to_ordered_list(time_points, start_time + times_dict[activity])   
         resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, times_dict, r_count, r_cons_dict)
-    return solution
+    return solution, resource_usages_in_time
 
 def compute_makespan(solution, times_dict):
     sol_sorted_by_values = sorted(solution, key=lambda d: list(d.values())) 
     return list(sol_sorted_by_values[-1].items())[0][1] + times_dict[list(sol_sorted_by_values[-1].items())[0][0]]
 
 
-def check_if_solution_feasible(solution, times_dict, r_cap_dict, r_count, r_cons_dict):
+def check_if_solution_feasible(solution, times_dict, r_cap_dict, r_count, r_cons_dict, act_pre):
     makespan = compute_makespan(solution, times_dict)
     #total_time_all_activit = sum(value for key, value in (times_dict.items()))
     resource_usage = {}
@@ -170,5 +188,13 @@ def check_if_solution_feasible(solution, times_dict, r_cap_dict, r_count, r_cons
                     resource_usage[i] = add_resource_usage(resource_usage[i], r_count, r_cons_dict, activity) 
         if is_resource_usage_greater_than_supply(r_count, resource_usage[i]):
             return 1.0
-    return -1.0
+    for dic in solution:
+        for activity, start_time in dic.items():
+            for sec in range(makespan+1):
+                if activity_in_conflict_in_precedence(act_pre, activity, sec, times_dict, solution):
+                    return 1.0
+                else:    
+                    return -1.0
+
+
     
