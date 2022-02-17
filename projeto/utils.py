@@ -28,7 +28,8 @@ def khan(graph):
     for vertices, neighbors in graph.items():
         in_degree.setdefault(vertices, 0)
         for neighbor in neighbors:
-            in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
+            in_degree[neighbor] = in_degree.get(neighbor, 0) 
+            #in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
     no_indegree_vertices = {vertex for vertex, count in in_degree.items() if count == 0}
 
     topological_sort = []
@@ -40,11 +41,12 @@ def khan(graph):
             if in_degree[neighbor] == 0:
                 no_indegree_vertices.add(neighbor)
 
-    #assert all([topological_sort.index(v) < topological_sort.index(k) for k in graph.keys() for v in graph[k]])
+    assert all([topological_sort.index(v) < topological_sort.index(k) for k in graph.keys() for v in graph[k]])
     if len(topological_sort) != len(in_degree):
         print("Graph has cycles; It is not a directed acyclic graph ... ")
         return None
     else:
+        print(topological_sort)
         return topological_sort
 
 
@@ -116,7 +118,6 @@ def insert_value_to_ordered_list(l, value):
 
 def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, times_dict, act_pre):
     #INICIO Serial SGS para todos os individuos
-    
     solution = []
     resource_usages_in_time = {}
     time_points = [0]
@@ -126,7 +127,7 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
             key_aux = {key: (value,0)} #tupla capacidade/em uso
             resource_usages_in_time[sec].update(key_aux)
     
-    solution.append({0: 0})  #inicializando dummy
+    #solution.append({0: 0})  #inicializando dummy
     for activity in ind:
         activity = int(activity)
         last_time = time_points[-1]

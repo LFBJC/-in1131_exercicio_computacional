@@ -46,6 +46,8 @@ class RCPSP_RandomKeyRepresentation(Problem):
             #FIM Serial SGS para todos os individuos
             restrictions[count][0] = check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict)
             count+=1
+        print(min(makespans))
+        print(indvs_after_sgs[makespans.index(min(makespans))])
         out["F"] = np.array(makespans)
         out["G"] = np.array(restrictions)
 
