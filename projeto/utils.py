@@ -64,6 +64,7 @@ def another_random_key_decoder(indvs, reference_list):
     return indvs
 
 def activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
+    #essa funcao ta errada - fix
     if act_pre[activity]['value'] == []:
         return False
     for preact in act_pre[activity]['value']:
@@ -121,14 +122,14 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
     solution = []
     resource_usages_in_time = {}
     time_points = [0]
-    for sec in range(total_time_all_activit+1):
+    for sec in range(total_time_all_activit):
         resource_usages_in_time[sec] = {}
         for key, value in r_cap_dict.items():
             key_aux = {key: (value,0)} #tupla capacidade/em uso
             resource_usages_in_time[sec].update(key_aux)
     
     solution.append({0: 0})  #inicializando dummy
-    ind = (activity for activity in ind if activity > 0)
+    ind = [activity for activity in ind if activity > 0]
     for activity in ind:
         activity = int(activity)
         last_time = time_points[-1]
