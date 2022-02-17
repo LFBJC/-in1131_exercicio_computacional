@@ -40,9 +40,9 @@ while True:
     if int(jobs) == 120:
         aux = input("Selecione um número entre 1 e 60:\n" )
     else:
-        aux = 1
+        aux = input("Selecione um número entre 1 e 48:\n" )
     aux2 = input("Selecione um número entre 1 e 10:\n" )
-    aux2=8
+    #aux2=8
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):

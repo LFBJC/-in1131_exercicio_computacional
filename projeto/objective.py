@@ -31,7 +31,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
         indvs = another_random_key_decoder(x, self.all_tasks)
         #https://github.com/bantosik/py-rcpsp/blob/a9c180f8425a60af9cb18971378b89d7843aea6f/SingleModeClasses.py#L1
         #criando dicionario de tempos de uso
-        
+        self.times_dict[0] = 0
         total_time_all_activit = sum(value for key, value in (self.times_dict.items()))
 
         indvs_after_sgs = []
