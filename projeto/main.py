@@ -10,7 +10,7 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
 from operators import SamplingRespectingPrecedence
 
-CRITERION = ("n_gen", 10)
+CRITERION = ("n_gen", 1000)
 ITERATIONS = 1
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#

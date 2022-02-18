@@ -58,7 +58,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
                 end_index_resource = (i + 1) * total_time_all_activit
                 restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
         out["G"] = np.array(restrictions)
-        infeasibility_value = np.sum(out["G"], axis=1)
+        infeasibility_value = np.sum(out["G"]*np.where(out["G"] <= 0, 0, 1), axis=1)
         out["F"] = np.where(infeasibility_value <= 0, np.array(makespans), np.array(makespans) + 100*infeasibility_value)
 
 
@@ -127,6 +127,6 @@ class RCPSP(Problem):
                         np.sum(tasks_at_this_moment, axis=1)
                     ])
         out["G"] = restrictions
-        infeasibility_value = np.sum(restrictions, axis=1)
+        infeasibility_value = np.sum(restrictions*np.where(restrictions<=0,0,1), axis=1)
         out["F"] = np.where(infeasibility_value <= 0, ending_time_of_all_tasks, ending_time_of_all_tasks + infeasibility_value)
 
