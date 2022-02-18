@@ -2,6 +2,7 @@ import json
 import numpy as np
 import bisect
 from copy import copy
+import time
 
 
 def problem_from_json(file_name):
@@ -71,36 +72,26 @@ def another_random_key_decoder(indvs, reference_list):
             indvs[arr][idx[0]] = i
     return indvs
 
+def get_start_time(preact, solution):
+    preact_start_time = None
+    for dic in solution:    #Pegar o tempo de inicio
+        for act, start_time in dic.items():
+            if act == preact:
+                return start_time
 
 def activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
     #essa funcao ta errada? - fix
+    actives_in_sol = [list(dic.keys())[0] for dic in solution]
+
     if act_pre[activity]['value'] == []:
         return False
-    preds_in_sol = []    
-    for dic in solution:
-        preds_in_sol.append(list(dic.keys())[0])
-        
+
     for preact in act_pre[activity]['value']:
-        # print("\nHere")
-        # print('atividiade', activity)
-        # print('preatividade',  preact)
-        if preact in preds_in_sol: #Se a preatividade existe,continue
-            preact_start_time = None
-            for dic in solution:    #Pegar o tempo de inicio
-                for act, start_time in dic.items():
-                    if act == preact:
-                        preact_start_time = start_time
-            #import time; time.sleep(60)
-            # print(solution)
-            # print('preact incia em: ',  preact_start_time)
-            # print('preact duração: ', times_dict[preact])
-            # print('tempo q ele vai ser colocado: ', time_unit)
-            if preact_start_time + times_dict[preact] > time_unit:
+        if preact in actives_in_sol: #Se a preatividade existe,continue
+            if get_start_time(preact, solution) + times_dict[preact] > time_unit:
                 return True
-            else:
-                return False
-        else: #se a preatividade ainda n existe, retorne há conflito
-            return True
+    else:
+        return False
 
 # print(activity)
 # print(act_pre[activity]['value'])
@@ -112,9 +103,10 @@ def is_resource_usage_greater_than_supply(r_count, actual_resource_usage):
         if actual_resource_usage[resource] is None:
             continue
         if list(actual_resource_usage[resource])[0] < list(actual_resource_usage[resource])[1]:
+            #print(list(actual_resource_usage[resource]))
             return True
-        else:
-            return False
+    else:
+        return False
 
 
 def add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity):
@@ -163,17 +155,31 @@ def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, tim
         start_time = 0
         for time_unit in reversed(time_points):
             actual_resource_usage = copy(resource_usages_in_time[time_unit])
-            actual_resource_usage = add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity)            
-            if is_resource_usage_greater_than_supply(r_count, actual_resource_usage) or activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
+            actual_resource_usage = add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity)   
+            is_resourc_enough = is_resource_usage_greater_than_supply(r_count, actual_resource_usage)
+            is_conflit_precedence = activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution)
+            if is_resourc_enough or is_conflit_precedence:
                     start_time = last_time
                     break
             else:
                 last_time = time_unit
         tuple_start_time = {activity: start_time}
+        # print('\n')
+        # print(tuple_start_time)
+        # print(resource_usages_in_time[start_time])
+        # print('\n')
         solution.append(tuple_start_time)
         time_points = insert_value_to_ordered_list(time_points, start_time)
         time_points = insert_value_to_ordered_list(time_points, start_time + times_dict[activity])   
+        
         resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, times_dict, r_count, r_cons_dict)
+    # print('\n==============================\n')
+    # print(resource_usages_in_time)
+    # print('\n==============================\n')
+    # print(activity)
+    # print(start_time)
+    # print(solution)
+    # time.sleep(6000)
     return solution, resource_usages_in_time
 
 
