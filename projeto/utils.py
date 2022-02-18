@@ -3,6 +3,7 @@ import numpy as np
 import bisect
 from copy import copy
 
+
 def problem_from_json(file_name):
     with open(file_name) as json_file:
         problem_dict = json.load(json_file)
@@ -10,8 +11,6 @@ def problem_from_json(file_name):
     #graph = {k: (act_pre[act_pre.index(k)] if k in act_pre else []) for k in range(1, problem_dict['act_count']+1)}
     graph = {} #fixed graph generator
     for k in range(0, problem_dict['act_count']+1):
-        if k == 0:
-            continue
         graph[k] = act_pre[k]['value']
     times_dict = {d['index']: d['value'] for d in problem_dict['act_proc']}
     r_cap_dict = {d['index']: d['value'] for d in problem_dict['r_cap']}
@@ -22,32 +21,41 @@ def problem_from_json(file_name):
     #return MRCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
 
 
-#https://codereview.stackexchange.com/questions/239008/python-implementation-of-kahns-algorithm
 def khan(graph):
-    in_degree = {u : 0 for u in graph}
-    for vertices, neighbors in graph.items():
-        in_degree.setdefault(vertices, 0)
-        for neighbor in neighbors:
-            in_degree[neighbor] = in_degree.get(neighbor, 0) 
-            #in_degree[neighbor] = in_degree.get(neighbor, 0) + 1
-    no_indegree_vertices = {vertex for vertex, count in in_degree.items() if count == 0}
-
-    topological_sort = []
-    while no_indegree_vertices:
-        vertex = no_indegree_vertices.pop()
-        topological_sort.append(vertex)
-        for neighbor in graph.get(vertex, []):
-            in_degree[neighbor] -= 1
-            if in_degree[neighbor] == 0:
-                no_indegree_vertices.add(neighbor)
-
-    assert all([topological_sort.index(v) < topological_sort.index(k) for k in graph.keys() for v in graph[k]])
-    if len(topological_sort) != len(in_degree):
-        print("Graph has cycles; It is not a directed acyclic graph ... ")
-        return None
+    ret = []
+    no_incoming_edge = [key for key in graph.keys() if graph[key] == []]
+    while no_incoming_edge != []:
+        current_node, no_incoming_edge = no_incoming_edge[0], no_incoming_edge[1:]
+        ret.append(current_node)
+        for other_node in graph.keys():
+            if other_node != current_node and current_node in graph[other_node]:
+                graph[other_node] = [node for node in graph[other_node] if node != current_node]
+                if graph[other_node] == []:
+                    no_incoming_edge.append(other_node)
+    edges = [(k, x) for k in graph.keys() if graph[k] != [] for x in graph[k]]
+    if edges != []:
+        raise ValueError("The graph has cycles")
     else:
-        #print(topological_sort)
-        return topological_sort
+        return ret
+
+
+def solution_from_random_key(indiv, graph):
+    ret = []
+    sorted_keys = [k for i, k in sorted(list(enumerate(graph.keys())), key=lambda t: indiv[list(graph.keys()).index(t[1])])]
+    no_incoming_edge = [key for key in sorted_keys if graph[key] == []]
+    while no_incoming_edge != []:
+        current_node, no_incoming_edge = no_incoming_edge[0], no_incoming_edge[1:]
+        ret.append(current_node)
+        for other_node in sorted_keys:
+            if other_node != current_node and current_node in graph[other_node]:
+                graph[other_node] = [node for node in graph[other_node] if node != current_node]
+                if graph[other_node] == []:
+                    no_incoming_edge.append(other_node)
+    edges = [(k, x) for k in graph.keys() if graph[k] != [] for x in graph[k]]
+    if edges != []:
+        raise ValueError("The graph has cycles")
+    else:
+        return ret
 
 
 def random_key_decoder(x, reference_list):
@@ -62,6 +70,7 @@ def another_random_key_decoder(indvs, reference_list):
             idx, = np.where(indvs[arr] == ordenate_x[i])
             indvs[arr][idx[0]] = i
     return indvs
+
 
 def activity_in_conflict_in_precedence(act_pre, activity, time_unit, times_dict, solution):
     #essa funcao ta errada? - fix
@@ -107,6 +116,7 @@ def is_resource_usage_greater_than_supply(r_count, actual_resource_usage):
         else:
             return False
 
+
 def add_resource_usage(actual_resource_usage, r_count, r_cons_dict, activity):
     #add resource usage
     for resource in range(1, r_count+1):
@@ -127,7 +137,6 @@ def update_resource_usages_in_time(resource_usages_in_time, activity, start_time
     return resource_usages_in_time
 
 
-
 def insert_value_to_ordered_list(l, value):
     i = bisect.bisect_left(l, value)
     if i >= len(l) or not l[i] == value:
@@ -135,7 +144,7 @@ def insert_value_to_ordered_list(l, value):
     return l
 
 
-def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, times_dict, act_pre):
+def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, times_dict, act_pre):
     #INICIO Serial SGS para todos os individuos
     solution = []
     resource_usages_in_time = {}
@@ -166,6 +175,7 @@ def serialSGS(ind,total_time_all_activit, r_count, r_cons_dict , r_cap_dict, tim
         time_points = insert_value_to_ordered_list(time_points, start_time + times_dict[activity])   
         resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, times_dict, r_count, r_cons_dict)
     return solution, resource_usages_in_time
+
 
 def compute_makespan(solution, times_dict):
     sol_sorted_by_values = sorted(solution, key=lambda d: list(d.values())) 

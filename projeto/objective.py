@@ -7,7 +7,7 @@ from copy import copy
 class RCPSP_RandomKeyRepresentation(Problem):
     def __init__(self, graph: dict, times_dict: dict, r_cap_dict={}, r_cons_dict={}, r_count=None, act_pre=None):
         self.graph = graph
-        self.all_tasks = khan(graph)
+        self.all_tasks = khan(graph.copy())
         self.times_dict = times_dict
         self.r_cap_dict = r_cap_dict
         self.r_cons_dict = r_cons_dict
@@ -22,39 +22,44 @@ class RCPSP_RandomKeyRepresentation(Problem):
         super().__init__(
             n_var=len(self.all_tasks),
             n_obj=1,
-            n_constr=sum([len(v) for v in graph.values()])+len(self.r_cap_dict.keys())*sum(times_dict.values()),
+            n_constr=len(self.r_cap_dict.keys())*sum(times_dict.values()),
             xl=0,
             xu=1
         )
 
     def _evaluate(self, x, out, *args, **kwargs):
-        indvs = another_random_key_decoder(x, self.all_tasks)
+        indvs = [solution_from_random_key(indiv, self.graph.copy()) for indiv in x[:]]
         #https://github.com/bantosik/py-rcpsp/blob/a9c180f8425a60af9cb18971378b89d7843aea6f/SingleModeClasses.py#L1
         #criando dicionario de tempos de uso
         self.times_dict[0] = 0
         total_time_all_activit = sum(value for key, value in (self.times_dict.items()))
 
-        indvs_after_sgs = []
+        # indvs_after_sgs = []
         makespans = []
-        restrictions = [[0]*1]*len(indvs)
-        count = 0
-        for ind in indvs[:]:
-            solution, resource_usages_in_time = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
-            mkspan = compute_makespan(solution, self.times_dict)
-            indvs_after_sgs.append(solution)
+        number_of_resources = len(self.r_cap_dict.keys())
+        restrictions = [[0]*number_of_resources*total_time_all_activit]*len(indvs)
+        for count, solution in enumerate(indvs[:]):
+            # solution, resource_usages_in_time = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
+            resource_usages = {resource: np.array([0]*total_time_all_activit) for resource in self.r_cap_dict.keys()}
+            start_times = [0]*len(solution)
+            for i, activity in enumerate(solution):
+                if self.graph[activity] != []:
+                    start_times[i] = max([start_times[other] + self.times_dict[other] for other in self.graph[activity]])
+                for resource in resource_usages.keys():
+                    if (activity, resource) in self.r_cons_dict.keys():
+                        resource_usages[resource][start_times[i]:start_times[i]+self.times_dict[activity]] += self.r_cons_dict[(activity, resource)]
+            mkspan = max(start_times) + self.times_dict[self.all_tasks[np.argmax(start_times)]]
             makespans.append(float(mkspan))
-            #FIM Serial SGS para todos os individuos
-            restrictions[count][0] = check_if_solution_feasible(solution, self.times_dict, self.r_cap_dict, self.r_count, self.r_cons_dict, self.act_pre)
-            count+=1
-            print(solution)
-            print(resource_usages_in_time)
-            import time; time.sleep(50)
-        
-        print(min(makespans))
-        print(indvs_after_sgs[makespans.index(min(makespans))])
-
-        out["F"] = np.array(makespans)
+            for i, resource in enumerate(resource_usages.keys()):
+                usage = resource_usages[resource]
+                capacity = self.r_cap_dict[resource]
+                # each resource has its range of restriction indices corresponding to their usage at each time step
+                begin_index_resource = i * total_time_all_activit
+                end_index_resource = (i + 1) * total_time_all_activit
+                restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
         out["G"] = np.array(restrictions)
+        infeasibility_value = np.sum(out["G"], axis=1)
+        out["F"] = np.where(infeasibility_value <= 0, np.array(makespans), np.array(makespans) + 100*infeasibility_value)
 
 
 class RCPSP(Problem):
@@ -86,7 +91,6 @@ class RCPSP(Problem):
         # tasks of each individual
         durations_of_last_tasks = np.transpose(durations_of_last_tasks)
         ending_time_of_all_tasks = max_start_times + durations_of_last_tasks
-        out["F"] = ending_time_of_all_tasks
         
         # precedence constraints
         restrictions = np.array([])
@@ -123,4 +127,6 @@ class RCPSP(Problem):
                         np.sum(tasks_at_this_moment, axis=1)
                     ])
         out["G"] = restrictions
+        infeasibility_value = np.sum(restrictions, axis=1)
+        out["F"] = np.where(infeasibility_value <= 0, ending_time_of_all_tasks, ending_time_of_all_tasks + infeasibility_value)
 
