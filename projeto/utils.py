@@ -128,7 +128,19 @@ def update_resource_usages_in_time(resource_usages_in_time, activity, start_time
         resource_usages_in_time[point] = add_resource_usage(resource_usages_in_time[point], r_count, r_cons_dict, activity)
     return resource_usages_in_time
 
-
+def another_update_resource_usages_in_time(resource_usages, activity, r_cons_dict, times_dict, list_start_time, ind, graph):    
+    for i, activity in enumerate(ind):
+        if graph[activity] != []:
+            list_start_time[i] = max([list_start_time[other] + times_dict[other] for other in graph[activity]])
+        for resource in resource_usages.keys():
+            if (activity, resource) in r_cons_dict.keys():
+                resource_usages[resource][list_start_time[i]:list_start_time[i]+times_dict[activity]] += r_cons_dict[(activity, resource)]
+                
+    for resource in resource_usages.keys():
+        if (activity, resource) in r_cons_dict.keys():
+            resource_usages[resource][list_start_time[i]:list_start_time[i]+times_dict[activity]] += r_cons_dict[(activity, resource)]
+    return resource_usages
+    
 def insert_value_to_ordered_list(l, value):
     i = bisect.bisect_left(l, value)
     if i >= len(l) or not l[i] == value:
@@ -136,7 +148,7 @@ def insert_value_to_ordered_list(l, value):
     return l
 
 
-def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, times_dict, act_pre):
+def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, times_dict, act_pre, graph, resource_usages):
     #INICIO Serial SGS para todos os individuos
     solution = []
     resource_usages_in_time = {}
@@ -150,6 +162,7 @@ def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, tim
     solution.append({0: 0})  #inicializando dummy
     ind = [activity for activity in ind if activity > 0]
     for activity in ind:
+        list_start_time = [0]*(len(ind)+1)
         activity = int(activity)
         last_time = time_points[-1]
         start_time = 0
@@ -164,6 +177,7 @@ def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, tim
             else:
                 last_time = time_unit
         tuple_start_time = {activity: start_time}
+        list_start_time[activity] = start_time
         # print('\n')
         # print(tuple_start_time)
         # print(resource_usages_in_time[start_time])
@@ -173,6 +187,7 @@ def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, tim
         time_points = insert_value_to_ordered_list(time_points, start_time + times_dict[activity])   
         
         resource_usages_in_time = update_resource_usages_in_time(resource_usages_in_time, activity, start_time, times_dict, r_count, r_cons_dict)
+        resource_usages_ret = another_update_resource_usages_in_time(resource_usages, activity, r_cons_dict, times_dict, list_start_time, ind, graph)
     # print('\n==============================\n')
     # print(resource_usages_in_time)
     # print('\n==============================\n')
@@ -180,7 +195,7 @@ def serialSGS(ind, total_time_all_activit, r_count, r_cons_dict, r_cap_dict, tim
     # print(start_time)
     # print(solution)
     # time.sleep(6000)
-    return solution, resource_usages_in_time
+    return solution, resource_usages_ret
 
 
 def compute_makespan(solution, times_dict):
