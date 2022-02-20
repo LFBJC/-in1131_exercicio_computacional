@@ -24,3 +24,21 @@ class SamplingRespectingPrecedence(Sampling):
                 problem._evaluate(x[[sample], :], out)
         return x
 
+
+class SamplingWithSelection(Sampling):
+    def _do(self, problem, n_samples, **kwargs):
+        x = np.random.rand(n_samples*300, problem.n_var) * (problem.xu - problem.xl) + problem.xl
+        # there is no point in waiting for nothing until the first task starts
+        x = (x - np.repeat(np.min(x, axis=1)[:, np.newaxis], problem.n_var, axis=1) + problem.xl)
+        out = {}
+        problem._evaluate(x, out)
+        out["CV"] = np.sum(out["G"], axis=1)
+        out["feasible"] = out["CV"] <= 0
+        feasible = x[out["feasible"], :]
+        infeasible = x[~out["feasible"], :]
+        feasible = feasible[np.argsort(out["F"]), :]
+        if feasible.shape[0] < n_samples:
+            x = np.append(feasible, infeasible[np.argsort(out["CV"]+0.001*out["F"])])
+        else:
+            x = feasible
+        return x

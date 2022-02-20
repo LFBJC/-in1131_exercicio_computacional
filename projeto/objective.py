@@ -60,7 +60,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
         out["G"] = np.array(restrictions)
         infeasibility_value = np.sum(out["G"]*np.where(out["G"] <= 0, 0, 1), axis=1)
 
-        print(start_times)
+        # print(start_times)
 
         out["F"] = np.where(infeasibility_value <= 0, np.array(makespans), np.array(makespans) + 100*infeasibility_value)
 
