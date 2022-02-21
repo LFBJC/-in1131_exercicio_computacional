@@ -10,8 +10,8 @@ from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
 from operators import SamplingRespectingPrecedence, SamplingWithSelection
 
-CRITERION = ("n_gen", 100)
-ITERATIONS = 1
+CRITERION = ("n_gen", 1000)
+ITERATIONS = 30
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#
 # print('Digite as dependências das atividades.')
@@ -52,7 +52,7 @@ while True:
             # problem = RCPSP_RKR_debug(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
 
             pop= math.exp(3.551 + (22.72/jobs))
-            de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
+            de = DE(pop_size=int(pop))  # , sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))
             res = minimize(problem, de, CRITERION)
             if res.F is not None:
                 x_results.append(res.X)

@@ -42,12 +42,8 @@ class RCPSP_RandomKeyRepresentation(Problem):
             # solution, resource_usages_in_time = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
             resource_usages = {resource: np.array([0]*total_time_all_activit) for resource in self.r_cap_dict.keys()}
             start_times = [0]*len(solution)
-            for i, activity in enumerate(solution):
-                if self.graph[activity] != []:
-                    start_times[i] = max([start_times[other] + self.times_dict[other] for other in self.graph[activity]])
-                for resource in resource_usages.keys():
-                    if (activity, resource) in self.r_cons_dict.keys():
-                        resource_usages[resource][start_times[i]:start_times[i]+self.times_dict[activity]] += self.r_cons_dict[(activity, resource)]
+            for activity in solution:
+                self.update_resource_usages_and_start_times(start_times, activity, resource_usages)
             mkspan = max(start_times) + self.times_dict[self.all_tasks[np.argmax(start_times)]]
             makespans.append(float(mkspan))
             for i, resource in enumerate(resource_usages.keys()):
@@ -57,12 +53,56 @@ class RCPSP_RandomKeyRepresentation(Problem):
                 begin_index_resource = i * total_time_all_activit
                 end_index_resource = (i + 1) * total_time_all_activit
                 restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
+            assert all([solution.index(key) > solution.index(task) for key, value in self.graph.items() for task in value])
+            assert all([start_times[self.all_tasks.index(key)] > start_times[self.all_tasks.index(task)] + self.times_dict[task] for key, value in self.graph.items() for task in value])
         out["G"] = np.array(restrictions)
         infeasibility_value = np.sum(out["G"]*np.where(out["G"] <= 0, 0, 1), axis=1)
 
         # print(start_times)
 
         out["F"] = np.where(infeasibility_value <= 0, np.array(makespans), np.array(makespans) + 100*infeasibility_value)
+
+    def update_resource_usages_and_start_times(self, start_times, activity, resource_usages):
+        if self.graph[activity] != []:
+            activity_start_time = max(
+                [start_times[self.all_tasks.index(other)] + self.times_dict[other] + 1 for other in self.graph[activity]]
+            )
+        else:
+            activity_start_time = 0
+        activity_ending_time = start_times[self.all_tasks.index(activity)] + self.times_dict[activity]
+        feasible = self.check_feasible(activity, activity_start_time, resource_usages)
+        while not feasible:
+            # print(activity_start_time)
+            ending_times_concurrent_tasks = [
+                start_times[j] + self.times_dict[self.all_tasks[j]] for j in range(len(self.all_tasks))
+                if start_times[j] + self.times_dict[self.all_tasks[j]] > activity_start_time and
+                   start_times[j] <= start_times[self.all_tasks.index(activity)] + self.times_dict[activity] and
+                   any([
+                        (self.all_tasks[j], resource) in self.r_cons_dict.keys() and
+                        self.r_cons_dict[(self.all_tasks[j], resource)] > 0
+                        for resource in resource_usages.keys()
+                    ])
+            ]
+            activity_start_time = min(ending_times_concurrent_tasks)
+            feasible = self.check_feasible(activity, activity_start_time, resource_usages)
+        start_times[self.all_tasks.index(activity)] = activity_start_time
+        for resource in resource_usages.keys():
+            if (activity, resource) in self.r_cons_dict:
+                curr_activity_resource_usage = self.r_cons_dict[(activity, resource)]
+            else:
+                curr_activity_resource_usage = 0
+            resource_usages[resource][activity_start_time:activity_ending_time] += curr_activity_resource_usage
+
+    def check_feasible(self, activity, activity_start_time, resource_usages):
+        activity_ending_time = activity_start_time + self.times_dict[activity]
+        feasible = True
+        for resource in resource_usages.keys():
+            if (activity, resource) in self.r_cons_dict.keys() and self.r_cons_dict[(activity, resource)] > 0:
+                already_used = resource_usages[resource][activity_start_time:activity_ending_time]
+                curr_activity_resource_usage = self.r_cons_dict[(activity, resource)]
+                capacity = self.r_cap_dict[resource]
+                feasible = feasible and np.all(already_used + curr_activity_resource_usage <= capacity)
+        return feasible
 
 
 class RCPSP(Problem):
