@@ -10,7 +10,7 @@ class SamplingRespectingPrecedence(Sampling):
 
     def _do(self, problem, n_samples, **kwargs):
         modified_samples = int(self.pop_ratio*n_samples)
-        x = np.random.rand(n_samples, problem.n_var)*(problem.xu - problem.xl) + problem.xl
+        x = np.random.rand(n_samples*3, problem.n_var)*(problem.xu - problem.xl) + problem.xl
         # there is no point in waiting for nothing until the first task starts
         x = (x-np.repeat(np.min(x, axis=1)[:, np.newaxis], problem.n_var, axis=1)+problem.xl)
         for sample in range(modified_samples):
@@ -27,7 +27,7 @@ class SamplingRespectingPrecedence(Sampling):
 
 class SamplingWithSelection(Sampling):
     def _do(self, problem, n_samples, **kwargs):
-        x = np.random.rand(n_samples*300, problem.n_var) * (problem.xu - problem.xl) + problem.xl
+        x = np.random.rand(n_samples*3, problem.n_var) * (problem.xu - problem.xl) + problem.xl
         # there is no point in waiting for nothing until the first task starts
         x = (x - np.repeat(np.min(x, axis=1)[:, np.newaxis], problem.n_var, axis=1) + problem.xl)
         out = {}
@@ -35,10 +35,12 @@ class SamplingWithSelection(Sampling):
         out["CV"] = np.sum(out["G"], axis=1)
         out["feasible"] = out["CV"] <= 0
         feasible = x[out["feasible"], :]
-        infeasible = x[~out["feasible"], :]
+        #infeasible = x[~out["feasible"], :]
         feasible = feasible[np.argsort(out["F"]), :]
         if feasible.shape[0] < n_samples:
-            x = np.append(feasible, infeasible[np.argsort(out["CV"]+0.001*out["F"])])
+            #x = np.append(feasible, infeasible[np.argsort(out["CV"]+0.001*out["F"])])
+            print("Sampling Again")
+            x = np.append(feasible, SamplingWithSelection(Sampling))
         else:
             x = feasible
         return x
