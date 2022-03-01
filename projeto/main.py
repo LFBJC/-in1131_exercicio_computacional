@@ -49,15 +49,16 @@ while True:
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
 
     instance = 'j' + str(jobs) + str(aux) +  '_' + str(aux2)
-    sampling_tipe = 'standard' #SamplingWithSelection, SamplingRespectingPrecedence or standard
-    representation = 'RK'
+    sampling_tipe = 'SamplingWithSelection' #SamplingWithSelection, SamplingRespectingPrecedence or standard
+    representation = 'start_times'
     mutation = 'agressive'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):
             graph, times_dict, r_cap_dict, r_cons_dict, r_count, act_pre = problem_from_json(file_name)
-            # problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
-            if  representation == 'RK':
+            if representation == 'RK':
                 problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
+            elif representation == 'start_times':
+                problem = RCPSP(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict)
             # problem = RCPSP_RKR_debug(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
 
             pop= math.exp(3.551 + (22.72/jobs))

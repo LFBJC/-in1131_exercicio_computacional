@@ -112,7 +112,7 @@ class RCPSP(Problem):
         self.times_dict = times_dict
         self.r_cap_dict = r_cap_dict
         self.r_cons_dict = r_cons_dict
-        self.time_step_size = min(times_dict.values())
+        self.time_step_size = min([t for t in times_dict.values() if t > 0])
         self.resources_to_constraint_vectors = {k: np.zeros_like(self.all_tasks) for k in self.r_cap_dict.keys()}
         for resource in self.resources_to_constraint_vectors.keys():
             task_indices = [self.all_tasks.index(task_resource_pair[0]) for task_resource_pair in self.r_cons_dict.keys() if task_resource_pair[1] == resource]
@@ -209,7 +209,6 @@ class RCPSP_RKR_debug(Problem):
         makespans = []
         number_of_resources = len(self.r_cap_dict.keys())
         restrictions = [[0]*number_of_resources*total_time_all_activit]*len(indvs)
-        count = 0
         for count, ind in enumerate(indvs[:]):
             resource_usages = {resource: np.array([0]*total_time_all_activit) for resource in self.r_cap_dict.keys()}
             solution, resource_usages = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre, self.graph, resource_usages)
@@ -224,7 +223,6 @@ class RCPSP_RKR_debug(Problem):
                 begin_index_resource = i * total_time_all_activit
                 end_index_resource = (i + 1) * total_time_all_activit
                 restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
-            count+=1
         # print("oi")
         # print(min(makespans))
         # print(indvs_after_sgs[makespans.index(min(makespans))])

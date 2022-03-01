@@ -27,20 +27,43 @@ class SamplingRespectingPrecedence(Sampling):
 
 class SamplingWithSelection(Sampling):
     def _do(self, problem, n_samples, **kwargs):
-        x = np.random.rand(n_samples*3, problem.n_var) * (problem.xu - problem.xl) + problem.xl
+        depth = kwargs.get('depth') or 100000
+        x_size = kwargs.get('x_size') or n_samples
+        x = np.random.rand(x_size*3, problem.n_var) * (problem.xu - problem.xl) + problem.xl
         # there is no point in waiting for nothing until the first task starts
         x = (x - np.repeat(np.min(x, axis=1)[:, np.newaxis], problem.n_var, axis=1) + problem.xl)
         out = {}
         problem._evaluate(x, out)
-        out["CV"] = np.sum(out["G"], axis=1)
+        out["CV"] = np.max(out["G"], axis=1)
         out["feasible"] = out["CV"] <= 0
         feasible = x[out["feasible"], :]
-        #infeasible = x[~out["feasible"], :]
-        feasible = feasible[np.argsort(out["F"]), :]
+        infeasible = x[~out["feasible"], :]
+        feasible = feasible[np.argsort(out["F"][out["feasible"]]), :]
+        infeasibility_values = out["CV"][~out["feasible"]] + 0.001 * out["F"][~out["feasible"]]
+        infeasible = infeasible[np.argsort(infeasibility_values)]
+        while feasible.shape[0] < n_samples and depth > 0:
+            x = np.random.rand(x_size * 3, problem.n_var) * (problem.xu - problem.xl) + problem.xl
+            # there is no point in waiting for nothing until the first task starts
+            x = (x - np.repeat(np.min(x, axis=1)[:, np.newaxis], problem.n_var, axis=1) + problem.xl)
+            out = {}
+            problem._evaluate(x, out)
+            out["CV"] = np.max(out["G"], axis=1)
+            out["feasible"] = out["CV"] <= 0
+            inner_feasible = x[out["feasible"], :]
+            inner_infeasible = x[~out["feasible"], :]
+            inner_feasible = inner_feasible[np.argsort(out["F"][out["feasible"]]), :]
+            inner_infeasibility_values = out["CV"][~out["feasible"]] + 0.001 * out["F"][~out["feasible"]]
+            infeasible = np.append(infeasible, inner_infeasible, axis=0)
+            infeasible = infeasible[np.argsort(list(infeasibility_values)+list(inner_infeasibility_values))]
+            infeasible = infeasible[:(n_samples - feasible.shape[0])]
+            infeasibility_values = np.sort(list(infeasibility_values)+list(inner_infeasibility_values))
+            infeasibility_values = infeasibility_values[:(n_samples - feasible.shape[0])]
+            feasible = np.append(feasible, inner_feasible, axis=0)
+            depth -= 1
         if feasible.shape[0] < n_samples:
-            #x = np.append(feasible, infeasible[np.argsort(out["CV"]+0.001*out["F"])])
-            print("Sampling Again")
-            x = np.append(feasible, SamplingWithSelection(Sampling))
+            x = np.append(feasible, infeasible, axis=0)
+        elif feasible.shape[0] > n_samples:
+            x = feasible[:n_samples, :]
         else:
             x = feasible
         return x
