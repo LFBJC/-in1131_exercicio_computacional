@@ -49,8 +49,8 @@ while True:
     file_name = str(os.getcwd()) + "/data/instances/json/j" + str(jobs) + '/j' + str(jobs) + str(aux) +  '_' +str(aux2) + '.json'
 
     instance = 'j' + str(jobs) + str(aux) +  '_' + str(aux2)
-    sampling_tipe = 'SamplingWithSelection' #SamplingWithSelection, SamplingRespectingPrecedence or standard
-    representation = 'start_times'
+    sampling_tipe = 'standard' #SamplingWithSelection, SamplingRespectingPrecedence or standard
+    representation = 'RK'
     mutation = 'agressive'
     if os.path.isfile(file_name):
         for _ in tqdm(range(ITERATIONS)):

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from pymoo.core.problem import Problem
 import numpy as np
 from utils import *
@@ -43,7 +45,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
             resource_usages = {resource: np.array([0]*total_time_all_activit) for resource in self.r_cap_dict.keys()}
             start_times = [0]*len(solution)
             for activity in solution:
-                self.update_resource_usages_and_start_times(start_times, activity, resource_usages)
+                self.update_resource_usages_and_start_times(start_times, activity, resource_usages, solution)
             mkspan = max(start_times) + self.times_dict[self.all_tasks[np.argmax(start_times)]]
             makespans.append(float(mkspan))
             for i, resource in enumerate(resource_usages.keys()):
@@ -54,7 +56,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
                 end_index_resource = (i + 1) * total_time_all_activit
                 restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
             assert all([solution.index(key) > solution.index(task) for key, value in self.graph.items() for task in value])
-            assert all([start_times[self.all_tasks.index(key)] > start_times[self.all_tasks.index(task)] + self.times_dict[task] for key, value in self.graph.items() for task in value])
+            assert all([start_times[self.all_tasks.index(key)] >= start_times[self.all_tasks.index(task)] + self.times_dict[task] for key, value in self.graph.items() for task in value])
         out["G"] = np.array(restrictions)
         infeasibility_value = np.sum(out["G"]*np.where(out["G"] <= 0, 0, 1), axis=1)
 
@@ -62,28 +64,31 @@ class RCPSP_RandomKeyRepresentation(Problem):
 
         out["F"] = np.where(infeasibility_value <= 0, np.array(makespans), np.array(makespans) + 100*infeasibility_value)
 
-    def update_resource_usages_and_start_times(self, start_times, activity, resource_usages):
+    def update_resource_usages_and_start_times(self, start_times, activity, resource_usages, solution):
         if self.graph[activity] != []:
             activity_start_time = max(
-                [start_times[self.all_tasks.index(other)] + self.times_dict[other] + 1 for other in self.graph[activity]]
+                [start_times[self.all_tasks.index(other)] + self.times_dict[other] for other in self.graph[activity]]
             )
         else:
             activity_start_time = 0
-        activity_ending_time = start_times[self.all_tasks.index(activity)] + self.times_dict[activity]
+        activity_ending_time = activity_start_time + self.times_dict[activity]
         feasible = self.check_feasible(activity, activity_start_time, resource_usages)
         while not feasible:
             # print(activity_start_time)
+            ending_time = lambda task: start_times[self.all_tasks.index(task)] + self.times_dict[task]
+            task_uses_resource = lambda task, resource: (defaultdict(int, self.r_cons_dict)[task, resource] > 0)
+            start_time_defined = lambda task: solution.index(task) < solution.index(activity)
+            started_b4_cur_task_ends = lambda task: start_time_defined(task) and start_times[self.all_tasks.index(task)] <= activity_ending_time
+            doesnt_halt_b4_cur_task_starts = lambda task: ending_time(task) > activity_start_time
+            is_on_the_right_time_window = lambda task: started_b4_cur_task_ends(task) and doesnt_halt_b4_cur_task_starts(task)
+            common_resources = lambda task1, task2: [resource for resource in resource_usages.keys()
+                                                     if task_uses_resource(task1, resource) and task_uses_resource(task2, resource)]
             ending_times_concurrent_tasks = [
-                start_times[j] + self.times_dict[self.all_tasks[j]] for j in range(len(self.all_tasks))
-                if start_times[j] + self.times_dict[self.all_tasks[j]] > activity_start_time and
-                   start_times[j] <= start_times[self.all_tasks.index(activity)] + self.times_dict[activity] and
-                   any([
-                        (self.all_tasks[j], resource) in self.r_cons_dict.keys() and
-                        self.r_cons_dict[(self.all_tasks[j], resource)] > 0
-                        for resource in resource_usages.keys()
-                    ])
+                ending_time(other_task) for other_task in self.all_tasks
+                if is_on_the_right_time_window(other_task) and len(common_resources(other_task, activity)) > 0
             ]
             activity_start_time = min(ending_times_concurrent_tasks)
+            activity_ending_time = activity_start_time + self.times_dict[activity]
             feasible = self.check_feasible(activity, activity_start_time, resource_usages)
         start_times[self.all_tasks.index(activity)] = activity_start_time
         for resource in resource_usages.keys():
