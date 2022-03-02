@@ -1,5 +1,49 @@
 import numpy as np
 from pymoo.core.sampling import Sampling
+from pymoo.core.mutation import Mutation
+from pymoo.operators.crossover.ox import random_sequence
+from pymoo.operators.mutation.inversion import inversion_mutation
+
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+
+class OurInversionMutation(Mutation):
+    def __init__(self, prob=1.0):
+        """
+        This mutation is applied to permutations. It randomly selects a segment of a chromosome and reverse its order.
+        For instance, for the permutation `[1, 2, 3, 4, 5]` the segment can be `[2, 3, 4]` which results in `[1, 4, 3, 2, 5]`.
+        Parameters
+        ----------
+        prob : float
+            Probability to apply the mutation to the individual
+
+        """
+        super().__init__()
+        self.prob = prob
+
+    def _do(self, problem, X, **kwargs):
+        Y = X.copy()
+        for i, y in enumerate(X):
+            if np.random.random() < self.prob*(1-sigmoid(np.mean(np.std(X, axis=0)))):
+                seq = random_sequence(len(y))
+                Y[i] = inversion_mutation(y, seq, inplace=True)
+        return Y
+
+
+class OurMutation2(Mutation):
+    def __init__(self, prob=1.0):
+        super().__init__()
+        self.prob = prob
+
+    def _do(self, problem, X, **kwargs):
+        Y = X.copy()
+        for i, y in enumerate(X):
+            for j in range(len(y)):
+                if np.random.random() < self.prob*(1-sigmoid(np.std(X[j], axis=0))):
+                    Y[i, j] = 1-y[j]
+        return Y
 
 
 class SamplingRespectingPrecedence(Sampling):

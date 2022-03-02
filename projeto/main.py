@@ -9,7 +9,7 @@ from tqdm import tqdm
 import numpy as np
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
-from operators import SamplingRespectingPrecedence, SamplingWithSelection
+from operators import SamplingRespectingPrecedence, SamplingWithSelection, OurInversionMutation, OurMutation2
 import glob
 import matplotlib.pyplot as plt
 
@@ -68,14 +68,14 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), mutation=get_mutation("perm_inv", prob=0.70))
+                de = DE(pop_size=int(pop), mutation=OurMutation2()) # get_mutation("perm_inv", prob=0.70))
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':
                 de = DE(pop_size=int(pop), sampling=SamplingRespectingPrecedence(pop_ratio=1, max_depth=30))  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             
             res = minimize(problem, de, CRITERION, save_history=True,               
-                           verbose=False)
+                           verbose=True)
 
             if res.F is not None:
                 x_results.append(res.X)
@@ -92,6 +92,7 @@ while True:
         df_res = pd.read_csv(path, index_col=None, header=0, sep=',')
         print(df_res.head())
 
+        """
         new_row = {'instance': instance,  'min_makespan':min(fitness_results), 'average_makespan':np.mean(fitness_results), 
                      'std_makespan':np.mean(fitness_results), 'sampling_tipe':sampling_tipe, 'representation': representation, 'mutation': mutation}
         #append row to the dataframe
@@ -112,7 +113,7 @@ while True:
         fig.savefig(str(os.getcwd()) + '/data/solutions/j' + str(jobs) + '/' + filename_save + '.png', dpi=fig.dpi)
 
         #np.savetxt(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '/' + str(new_row) +'.txt', res.history , delimiter=",")
-
+        """
         print('resultados:')
         print('      Número de vezes que não foi encontrada nenhuma solução viável:', none_count)
         print('      Melhor solução encontrada:', np.min(fitness_results))
