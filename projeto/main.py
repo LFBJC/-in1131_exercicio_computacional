@@ -58,7 +58,7 @@ while True:
     representation = 'RK'
     mutation = 'agressive'
     if os.path.isfile(file_name):
-        for _ in tqdm(range(ITERATIONS)):
+        for itera in tqdm(range(ITERATIONS)):
             graph, times_dict, r_cap_dict, r_cons_dict, r_count, act_pre = problem_from_json(file_name)
             if representation == 'RK':
                 problem = RCPSP_RandomKeyRepresentation(graph=graph, times_dict=times_dict, r_cap_dict=r_cap_dict, r_cons_dict=r_cons_dict, r_count=r_count, act_pre=act_pre)
@@ -68,7 +68,7 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), mutation=OurMutation2()) # get_mutation("perm_inv", prob=0.70))
+                de = DE(pop_size=int(pop), variant="DE/best/1/bin", CR=0.7, jitter=True, mutation=OurMutation2())
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':
@@ -83,37 +83,19 @@ while True:
             else:
                 none_count += 1
 
-        fitness_results = [f for f in fitness_results if f is not None]
+            fitness_results = [f for f in fitness_results if f is not None]
 
-        #df_res = pd.read_csv(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv', sep=';')
+            new_row = {'instance': instance,'sampling_tipe':sampling_tipe, 'representation': representation, 'mutation': mutation}
+            filename_save = ''.join("{}_{}".format(k, v) for k, v in new_row.items())
+            #print(str(res.history), file=open(str(os.getcwd()) + '/data/solutions/' + filename_save +'.txt', "a"))
 
-        path = str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv' # use your path
-        
-        df_res = pd.read_csv(path, index_col=None, header=0, sep=',')
-        print(df_res.head())
-
-        """
-        new_row = {'instance': instance,  'min_makespan':min(fitness_results), 'average_makespan':np.mean(fitness_results), 
-                     'std_makespan':np.mean(fitness_results), 'sampling_tipe':sampling_tipe, 'representation': representation, 'mutation': mutation}
-        #append row to the dataframe
-        df_res.loc[-1] = ['', instance, fitness_results ,min(fitness_results)[0], np.mean(fitness_results), np.std(fitness_results), sampling_tipe, representation, mutation]  # adding a row
-        df_res.index = df_res.index + 1  # shifting index
-        df_res = df_res.sort_index()  # sorting by index
-
-        df_res = df_res.reindex(columns=['instance', 'min_makespan', 'average_makespan', 'std_makespan', 'sampling_tipe', 'representation'])
-        df_res.to_csv(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv')
-
-        filename_save = ''.join("{}_{}".format(k, v) for k, v in new_row.items())
-        #print(str(res.history), file=open(str(os.getcwd()) + '/data/solutions/' + filename_save +'.txt', "a"))
-        
-        fig = plt.figure(figsize=(3, 6))
-        val = [e.opt.get("F")[0] for e in res.history]
-        plt.plot(np.arange(len(val)), val)
-        #plt.show()
-        fig.savefig(str(os.getcwd()) + '/data/solutions/j' + str(jobs) + '/' + filename_save + '.png', dpi=fig.dpi)
+            fig = plt.figure(figsize=(3, 6))
+            val = [e.opt.get("F")[0] for e in res.history]
+            plt.plot(np.arange(len(val)), val)
+            #plt.show()
+            fig.savefig(str(os.getcwd()) + '/data/solutions/j' + str(jobs) + '/' + filename_save + '_' + str(itera) + '.png', dpi=fig.dpi)
 
         #np.savetxt(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '/' + str(new_row) +'.txt', res.history , delimiter=",")
-        """
         print('resultados:')
         print('      Número de vezes que não foi encontrada nenhuma solução viável:', none_count)
         print('      Melhor solução encontrada:', np.min(fitness_results))
