@@ -9,7 +9,7 @@ from tqdm import tqdm
 import numpy as np
 from pymoo.algorithms.soo.nonconvex.de import DE
 from pymoo.optimize import minimize
-from operators import SamplingRespectingPrecedence, SamplingWithSelection, OurInversionMutation, OurMutation2
+from operators import SamplingRespectingPrecedence, SamplingWithSelection, OurInversionMutation, OurMutation2, OurInversionMutation2
 import glob
 import matplotlib.pyplot as plt
 
@@ -68,7 +68,7 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), variant="DE/best/1/bin", CR=0.7, jitter=True, mutation=OurMutation2())
+                de = DE(pop_size=int(pop), mutation=OurInversionMutation2())
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':

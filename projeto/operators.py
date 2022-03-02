@@ -32,6 +32,29 @@ class OurInversionMutation(Mutation):
         return Y
 
 
+class OurInversionMutation2(Mutation):
+    def __init__(self, prob=1.0):
+        """
+        This mutation is applied to permutations. It randomly selects a segment of a chromosome and reverse its order.
+        For instance, for the permutation `[1, 2, 3, 4, 5]` the segment can be `[2, 3, 4]` which results in `[1, 4, 3, 2, 5]`.
+        Parameters
+        ----------
+        prob : float
+            Probability to apply the mutation to the individual
+
+        """
+        super().__init__()
+        self.prob = prob
+
+    def _do(self, problem, X, **kwargs):
+        Y = X.copy()
+        for i, y in enumerate(X):
+            seq = random_sequence(len(y))
+            if np.random.random() < self.prob*(1-sigmoid(np.mean(np.std(X[:, seq[0]:seq[1]], axis=0)))):
+                Y[i] = inversion_mutation(y, seq, inplace=True)
+        return Y
+
+
 class OurMutation2(Mutation):
     def __init__(self, prob=1.0):
         super().__init__()
