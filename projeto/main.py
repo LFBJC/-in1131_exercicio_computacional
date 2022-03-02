@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 from mutation import *
 
-CRITERION = ("n_gen", 100)
+CRITERION = ("n_gen", 10)
 ITERATIONS = 30
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#
@@ -68,7 +68,7 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), mutation=get_mutation("perm_inv", prob=0.70))
+                de = DE(pop_size=int(pop), variant="DE/best/1/bin", CR=0.5, jitter=True, mutation=get_mutation("perm_inv", prob=0.7)) 
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':
@@ -85,22 +85,8 @@ while True:
 
         fitness_results = [f for f in fitness_results if f is not None]
 
-        #df_res = pd.read_csv(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv', sep=';')
-
-        path = str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv' # use your path
-        
-        df_res = pd.read_csv(path, index_col=None, header=0, sep=',')
-        print(df_res.head())
-
         new_row = {'instance': instance,  'min_makespan':min(fitness_results), 'average_makespan':np.mean(fitness_results), 
                      'std_makespan':np.mean(fitness_results), 'sampling_tipe':sampling_tipe, 'representation': representation, 'mutation': mutation}
-        #append row to the dataframe
-        df_res.loc[-1] = ['', instance, fitness_results ,min(fitness_results)[0], np.mean(fitness_results), np.std(fitness_results), sampling_tipe, representation, mutation]  # adding a row
-        df_res.index = df_res.index + 1  # shifting index
-        df_res = df_res.sort_index()  # sorting by index
-
-        df_res = df_res.reindex(columns=['instance', 'min_makespan', 'average_makespan', 'std_makespan', 'sampling_tipe', 'representation'])
-        df_res.to_csv(str(os.getcwd()) + '/data/solutions/' + 'j' + str(jobs) + '.csv')
 
         filename_save = ''.join("{}_{}".format(k, v) for k, v in new_row.items())
         #print(str(res.history), file=open(str(os.getcwd()) + '/data/solutions/' + filename_save +'.txt', "a"))
