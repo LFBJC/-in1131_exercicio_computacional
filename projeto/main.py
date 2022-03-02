@@ -14,7 +14,7 @@ import glob
 import matplotlib.pyplot as plt
 from mutation import *
 
-CRITERION = ("n_gen", 1000)
+CRITERION = ("n_gen", 100)
 ITERATIONS = 30
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#
@@ -67,7 +67,7 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), mutation=get_mutation("bitflip", prob=0.30)) 
+                de = DE(pop_size=int(pop), mutation=get_mutation("perm_inv", prob=0.70))
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':
@@ -114,6 +114,8 @@ while True:
 
         print('resultados:')
         print('      Número de vezes que não foi encontrada nenhuma solução viável:', none_count)
+        print('      Melhor solução encontrada:', np.min(fitness_results))
+        print('      Número de vezes em que ele chegou na melhor solução:', fitness_results.count(np.min(fitness_results)))
         print('      Média (para os casos em que soluções foram encontradas):', np.mean(fitness_results))
         print('      Desvio (para os casos em que soluções foram encontradas):', np.std(fitness_results))
     else:

@@ -1,1 +1,2 @@
-,instance,array_makespans,min_makespan,average_makespan,std_makespan,sampling_tipe,representation,mutation
+,instance,min_makespan,average_makespan,std_makespan,sampling_tipe,representation
+0,j301_1,43.0,47.44444444444444,3.876169676113868,standard,RK
