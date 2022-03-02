@@ -12,6 +12,7 @@ from pymoo.optimize import minimize
 from operators import SamplingRespectingPrecedence, SamplingWithSelection
 import glob
 import matplotlib.pyplot as plt
+
 from mutation import *
 
 CRITERION = ("n_gen", 100)
@@ -74,7 +75,7 @@ while True:
                 de = DE(pop_size=int(pop), sampling=SamplingRespectingPrecedence(pop_ratio=1, max_depth=30))  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             
             res = minimize(problem, de, CRITERION, save_history=True,               
-                        verbose=True)
+                           verbose=False)
 
             if res.F is not None:
                 x_results.append(res.X)

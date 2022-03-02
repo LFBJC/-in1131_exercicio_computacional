@@ -138,15 +138,15 @@ def get_from_list(l, name, args, kwargs):
 
 def get_mutation_options():
     from pymoo.operators.mutation.nom import NoMutation
-    #from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
-    #from pymoo.operators.mutation.pm import PolynomialMutation
+    from pymoo.operators.mutation.bitflip import BinaryBitflipMutation
+    from pymoo.operators.mutation.pm import PolynomialMutation
     from pymoo.operators.integer_from_float_operator import IntegerFromFloatMutation
     from pymoo.operators.mutation.inversion import InversionMutation
 
     MUTATION = [
         ("none", NoMutation, {}),
         ("pol_mut", PolMut, dict(eta=20)),
-        #("int_pm", IntegerFromFloatMutation, dict(clazz=PolynomialMutation, eta=20)),
+        ("int_pm", IntegerFromFloatMutation, dict(clazz=PolynomialMutation, eta=20)),
         ("bitflip", B_Flip_Mutation),
         ("perm_inv", InversionMutation)
     ]
