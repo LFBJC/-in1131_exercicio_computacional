@@ -12,7 +12,9 @@ from pymoo.optimize import minimize
 from operators import SamplingRespectingPrecedence, SamplingWithSelection
 import glob
 import matplotlib.pyplot as plt
+
 from mutation import *
+
 
 CRITERION = ("n_gen", 1000)
 ITERATIONS = 30
@@ -67,7 +69,7 @@ while True:
 
             pop= math.exp(3.551 + (22.72/jobs))
             if sampling_tipe == 'standard':
-                de = DE(pop_size=int(pop), mutation=get_mutation("bitflip", prob=0.30)) 
+                de = DE(pop_size=int(pop), mutation=get_mutation("int_pm", prob=0.30)) 
             if sampling_tipe == 'SamplingWithSelection':
                 de = DE(pop_size=int(pop), sampling=SamplingWithSelection())  # DE(sampling=SamplingRespectingPrecedence(pop_ratio=0.8, max_depth=30))            
             if sampling_tipe == 'SamplingRespectingPrecedence':
