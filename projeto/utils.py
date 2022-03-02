@@ -41,22 +41,31 @@ def khan(graph):
 
 
 def solution_from_random_key(indiv, graph):
-    ret = []
-    sorted_keys = [k for i, k in sorted(list(enumerate(graph.keys())), key=lambda t: indiv[list(graph.keys()).index(t[1])])]
-    no_incoming_edge = [key for key in sorted_keys if graph[key] == []]
+    # ret = []
+    prioritize_it = len(indiv)+max([len(v) for v in graph.values()])
+    sorting_function = lambda t: prioritize_it*(graph[t] == []) + indiv[-1]*len(graph[t]) + indiv[list(graph.keys()).index(t)]
+    sorted_keys = [k for k in sorted(graph.keys(), key=sorting_function)]
+    """
+    # I tried to modify in order to turn it more random (which required an increase on the length of the individuals)
+    # but it didn't work 
+    no_incoming_edge = sorted([k for k in graph.keys() if graph[k] == []], key=lambda t: indiv[list(graph.keys()).index(t)])
+    indiv_index = len(no_incoming_edge)
     while no_incoming_edge != []:
         current_node, no_incoming_edge = no_incoming_edge[0], no_incoming_edge[1:]
         ret.append(current_node)
-        for other_node in sorted_keys:
-            if other_node != current_node and current_node in graph[other_node]:
-                graph[other_node] = [node for node in graph[other_node] if node != current_node]
-                if graph[other_node] == []:
-                    no_incoming_edge.append(other_node)
+        nodes_with_an_incoming_edge = sorted([n for n in graph.keys() if current_node in graph[n]], key=lambda t: indiv[indiv_index+list(graph.keys()).index(t)])
+        indiv_index += len(nodes_with_an_incoming_edge)
+        for other_node in nodes_with_an_incoming_edge:
+            graph[other_node] = [node for node in graph[other_node] if node != current_node]
+            if graph[other_node] == []:
+                no_incoming_edge.append(other_node)
     edges = [(k, x) for k in graph.keys() if graph[k] != [] for x in graph[k]]
     if edges != []:
         raise ValueError("The graph has cycles")
     else:
         return ret
+    """
+    return sorted_keys
 
 
 def random_key_decoder(x, reference_list):

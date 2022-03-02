@@ -22,9 +22,9 @@ class RCPSP_RandomKeyRepresentation(Problem):
             for task_index in task_indices:
                 self.resources_to_constraint_vectors[resource][task_index] = self.r_cons_dict[(self.all_tasks[task_index], resource)]
         super().__init__(
-            n_var=len(self.all_tasks),
+            n_var=len(self.all_tasks)+1,
             n_obj=1,
-            n_constr=len(self.r_cap_dict.keys())*sum(times_dict.values()),
+            n_constr=1,
             xl=0,
             xu=1
         )
@@ -39,7 +39,7 @@ class RCPSP_RandomKeyRepresentation(Problem):
         # indvs_after_sgs = []
         makespans = []
         number_of_resources = len(self.r_cap_dict.keys())
-        restrictions = [[0]*number_of_resources*total_time_all_activit]*len(indvs)
+        restrictions = np.zeros(shape=(len(indvs),1))
         for count, solution in enumerate(indvs[:]):
             # solution, resource_usages_in_time = serialSGS(ind, total_time_all_activit, self.r_count, self.r_cons_dict , self.r_cap_dict, self.times_dict, self.act_pre)
             resource_usages = {resource: np.array([0]*total_time_all_activit) for resource in self.r_cap_dict.keys()}
@@ -48,15 +48,16 @@ class RCPSP_RandomKeyRepresentation(Problem):
                 self.update_resource_usages_and_start_times(start_times, activity, resource_usages, solution)
             mkspan = max(start_times) + self.times_dict[self.all_tasks[np.argmax(start_times)]]
             makespans.append(float(mkspan))
-            for i, resource in enumerate(resource_usages.keys()):
-                usage = resource_usages[resource]
-                capacity = self.r_cap_dict[resource]
-                # each resource has its range of restriction indices corresponding to their usage at each time step
-                begin_index_resource = i * total_time_all_activit
-                end_index_resource = (i + 1) * total_time_all_activit
-                restrictions[count][begin_index_resource: end_index_resource] = usage - capacity
-            assert all([solution.index(key) > solution.index(task) for key, value in self.graph.items() for task in value])
-            assert all([start_times[self.all_tasks.index(key)] >= start_times[self.all_tasks.index(task)] + self.times_dict[task] for key, value in self.graph.items() for task in value])
+            # precedence constraints
+            precedence_constraint_violation = 0
+            for node, requirements in self.graph.items():
+                for requirement in requirements:
+                    node_start_time = start_times[self.all_tasks.index(node)]
+                    requirement_start_time = start_times[self.all_tasks.index(requirement)]
+                    requirement_duration = self.times_dict[requirement]
+                    precedence_constraint_violation += max(requirement_start_time + requirement_duration - node_start_time, 0)
+            restrictions[count] = precedence_constraint_violation
+            assert precedence_constraint_violation>0 or all([start_times[self.all_tasks.index(key)] >= start_times[self.all_tasks.index(task)] + self.times_dict[task] for key, value in self.graph.items() for task in value])
         out["G"] = np.array(restrictions)
         infeasibility_value = np.sum(out["G"]*np.where(out["G"] <= 0, 0, 1), axis=1)
 

@@ -13,7 +13,7 @@ from operators import SamplingRespectingPrecedence, SamplingWithSelection
 import glob
 import matplotlib.pyplot as plt
         
-CRITERION = ("n_gen", 100)
+CRITERION = ("n_gen", 1000)
 ITERATIONS = 30
 
 #----------------versão antiga onde é preciso digitar os inputs---------------#
