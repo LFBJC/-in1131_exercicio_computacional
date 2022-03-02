@@ -35,6 +35,9 @@ ITERATIONS = 30
 x_results = []
 fitness_results = []
 none_count = 0
+# just for debugging
+# SEED = 268567135
+# np.random.seed(SEED)
 #----------------versão nova---------------#
 while True:
     print("\nenter 'ctrl + c' to finish")
